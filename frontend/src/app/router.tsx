@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 
 import { UserLayout } from "@/shared/layouts/UserLayout";
 import { GuestRoute } from "@/shared/components/common/GuestRoute";
-import { UnauthorizedPage, NotFoundPage } from "@/shared/pages";
+import { UnauthorizedPage, NotFoundPage, ComingSoonPage } from "@/shared/pages";
 
 // ─── Feature pages ───────────────────────────────────────
 import { HomePage } from "@/features/landing/pages/HomePage";
@@ -11,7 +11,6 @@ import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 import { VerifyOtpPage } from "@/features/auth/pages/VerifyOtpPage";
 import { ResetPasswordPage } from "@/features/auth/pages/ResetPasswordPage";
 import { ProtectedRoute } from "@/shared/components/common";
-import { ProfilePage } from "@/features/profile";
 import { FavoritesPage } from "@/features/favorites";
 import { AdminLayout } from "@/shared/layouts/AdminLayout";
 import { AdminDashboard, OwnerDashboard } from "@/features/dashboard";
@@ -32,6 +31,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "courts", element: <CourtSearchPage /> },
+      { path: "matching", element: <ComingSoonPage /> },
       // { path: "rituals", element: <RitualCatalog /> },
       // { path: "rituals/:id", element: <RitualDetail /> },
       {
@@ -69,14 +69,6 @@ export const router = createBrowserRouter([
       { path: "unauthorized", element: <UnauthorizedPage /> },
 
       // Protected: cần đăng nhập
-      {
-        path: "profile",
-        element: (
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        ),
-      },
       {
         path: "favorites",
         element: (
