@@ -27,7 +27,7 @@ public class Service : IService
         var query = _dbContext.Transactions.Where(x => x.Wallet.UserId == userId && x.Status == "Success");
         var total = await query.SumAsync(x => (
                                                   x.Type == "Deposit" || x.Type == "Refund" ? x.Amount : 0)
-                                              - (x.Type == "Payment" || x.Type == "Withdraw" ? x.Amount : 0));
+                                              - (x.Type == "Payment" || x.Type == "Withdrawal" ? x.Amount : 0));
         if (total < 0)
         {
             throw new Exception("Total amount of transaction is less than 0!!!waring");

@@ -15,8 +15,9 @@ public class WithdrawalController : ControllerBase
     }
 
     // [HttpPost("WithdrawalRequest")]
-    // public Task<IActionResult> CreateWithdrawalRequest()
+    // public Task<IActionResult> CreateWithdrawalRequest(Request.CreateWithdrawalRequest request)
     // {
+    //     var result = _withdrawalService.CreateWithdrawalRequest(request);
     //     return Ok()
     // }
 }

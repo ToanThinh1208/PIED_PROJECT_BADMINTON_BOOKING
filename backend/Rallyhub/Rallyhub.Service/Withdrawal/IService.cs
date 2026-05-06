@@ -2,5 +2,5 @@
 
 public interface IService
 {
-    
+    public Task<string> CreateWithdrawalRequest(Request.CreateWithdrawalRequest request);
 }
