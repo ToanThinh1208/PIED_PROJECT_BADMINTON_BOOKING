@@ -12,7 +12,7 @@ public class Request
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
     }
-    public class HoldBookingRequest
+    public class ListAvailableSlots
     {
         public Guid SubCourtId { get; set; }
         public DateOnly Date { get; set; }

@@ -22,10 +22,10 @@ public class Service: IService
             .Include(x => x.Court)
             .FirstOrDefaultAsync(x => 
                 x.Id == request.SubCourtId && 
-                x.Court.Status == nameof(StatusCourt.Active));
+                x.Court.Status == "Active");
         if (subCourt == null)
         {
-            throw new Exception($"sub court with id {request.SubCourtId} not found");
+            throw new Exception($"Không tìm thấy sân con");
         }
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -102,8 +102,7 @@ public class Service: IService
         }
         return result.OrderBy(x => x.StartTime).ToList();
     }
-     
-    public async Task<Response.CreateBookingResponse> CreateBooking(Request.HoldBookingRequest request)
+    public async Task<Response.CreateBookingResponse> CreateBooking(Request.ListAvailableSlots request)
     {
         var customerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
         if (customerIdClaim == null)
@@ -131,12 +130,12 @@ public class Service: IService
 
             if (!systemSlot.IsAvailable)
             {
-                throw new Exception($"Slot {slot.StartTime}-{slot.EndTime} đã bị đặt");
+                throw new Exception($"Slot {slot.StartTime}-{slot.EndTime} đã bị đặt hoặc đã khóa");
             }
         }
         
         var dateTime = new DateTimeOffset(request.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
-        var bookedSlots = await  _dbContext.BookingDetails
+        var bookedSlots = await _dbContext.BookingDetails
             .Where(x =>
                 x.SubCourtId == request.SubCourtId &&
                 x.Date.Date == dateTime.Date &&

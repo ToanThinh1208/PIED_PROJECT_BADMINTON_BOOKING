@@ -23,7 +23,7 @@ public class BookingController: ControllerBase
             , HttpContext.TraceIdentifier));
     }
     [HttpPost("CustomerCreateBooking")]
-    public async Task<IActionResult> CreateBooking([FromBody] Request.HoldBookingRequest request)
+    public async Task<IActionResult> CreateBooking([FromBody] Request.ListAvailableSlots request)
     {
         var result = await _bookingService.CreateBooking(request);
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
