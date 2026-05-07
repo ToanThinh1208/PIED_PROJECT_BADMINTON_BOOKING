@@ -19,9 +19,8 @@ public class Service: IService
         _mailService = mailService;
         _transactionService = transactionService;
     }
-
-    public async Task<Base.Response.PageResult<Response.UserDto>>
-        FilterUser(Request.FilterUserRequest request)
+//user
+    public async Task<Base.Response.PageResult<Response.UserDto>> FilterUser(Request.FilterUserRequest request)
     {
         var getAllUser = _dbContext.Users.Where(x => x.Role != Enum.Enum.Role.Admin.ToString());
 
@@ -153,162 +152,6 @@ public class Service: IService
         throw new Exception("Không có quyền xem user admin");
     }
     
-    public async Task<Base.Response.PageResult<Response.AdminGetOwnerRequestResponse>> AdminGetOwnerRequest(Base.Request.Pagination request)
-    {
-        var query = _dbContext.OwnerRequests
-            .Include(x => x.Customer)
-            .ThenInclude(c => c.User)
-            .Where(x => x.Status == "Pending");
-
-        if (request.Id != null)
-        {
-            query = query.Where(x => x.CustomerId == request.Id);
-        }
-
-        if (request.Search != null)
-        {
-            query = query.Where(x => 
-                x.BusinessName.Contains(request.Search) ||
-                x.BusinessAddress.Contains(request.Search) ||
-                x.IdentityNumber.Contains(request.Search) ||
-                x.TaxCode.Contains(request.Search));
-        }
-
-        var total = await query.CountAsync();
-
-        query = query.OrderBy(x => x.CreatedAt);
-        query = query
-            .Skip((request.PageIndex - 1) * request.PageSize)
-            .Take(request.PageSize);
-
-        var selectOwenerRequest = query.Select(x => new Response.AdminGetOwnerRequestResponse()
-        {
-            Id = x.Id,
-            UserId = x.Customer.UserId,
-            CustomerId = x.CustomerId,
-            BusinessName = x.BusinessName,
-            TaxCode = x.TaxCode,
-            BusinessAddress = x.BusinessAddress,
-            BusinessLicenseUrl = x.BusinessLicenseUrl,
-            IdentityNumber = x.IdentityNumber,
-            IdentityCardFrontUrl = x.IdentityCardFrontUrl,
-            IdentityCardBackUrl = x.IdentityCardBackUrl,
-            Status = x.Status,
-            CreatedAt = x.CreatedAt,
-            // Thông tin customer từ User entity
-            FirstName = x.Customer.User.FirstName,
-            LastName = x.Customer.User.LastName,
-            Email = x.Customer.User.Email,
-            PhoneNumber = x.Customer.User.PhoneNumber,
-            AvatarUrl = x.Customer.User.AvatarUrl,
-        });
-
-        var listOwnerRequest = await selectOwenerRequest.ToListAsync();
-
-        var result = new Base.Response.PageResult<Response.AdminGetOwnerRequestResponse>()
-        {
-            Items = listOwnerRequest,
-            PageIndex = request.PageIndex,
-            PageSize = request.PageSize,
-            TotalItems = total,
-        };
-        return result;
-    }
-
-    public async Task<string> AdminApprovedOwnerRequest(Guid ownerRequestId)
-    {
-        var query = await _dbContext.OwnerRequests.Include(ownerRequest => ownerRequest.Customer).FirstOrDefaultAsync(x => x.Id == ownerRequestId);
-        if (query!.Status != "Pending")
-        {
-            throw new Exception("Error 500");
-        }
-        if (query.OwnerId != null)
-        {
-            throw new Exception("Error 500");
-        }
-
-        var newOwner = new Repository.Entity.Owner()
-        {
-            UserId = query.Customer.UserId,
-            BusinessName = query.BusinessName,
-            TaxCode = query.TaxCode,
-            BusinessAddress = query.BusinessAddress,
-            BusinessLicenseUrl = query.BusinessLicenseUrl,
-            IdentityNumber = query.IdentityNumber,
-            IdentityCardFrontUrl = query.IdentityCardFrontUrl,
-            IdentityCardBackUrl = query.IdentityCardBackUrl,
-            CreatedAt = DateTimeOffset.UtcNow,
-        };
-        query.Status = "Approved";
-        query.UpdatedAt = DateTimeOffset.UtcNow;
-        var userId = query.Customer.UserId;
-        var queryUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
-        queryUser!.Role = "Owner";
-        _dbContext.Owners.Add(newOwner);
-        var customerId = query.Customer.Id;
-        var customer = await _dbContext.Customers.FirstOrDefaultAsync(x => x.Id == customerId);
-        // _dbContext.Customers.Remove(customer!);
-        var result = await _dbContext.SaveChangesAsync();
-        //gửi mail
-        var subject = "Người tình trong mộng Ralluhub";
-        var bodyMail = "Hồ sơ đăng ký làm chủ sân cầu lông của bạn đã được ban quản trị xét duyệt thành công.<br>" +
-                       "Ngay bây giờ, bạn đã có thể đăng nhập vào hệ thống quản lý của rallyhub để thiết lập giá sân, lịch hoạt động và đón những vị khách đầu tiên.";
-        await _mailService.SendMail(new MailContent()
-        {
-            To = newOwner.User.Email,
-            Subject = subject,
-            Body = MailTemplate.GenerateApprovalTemplate(newOwner.User.Email, bodyMail),
-        });
-        
-        if (result > 0)
-        {
-            return "Success";
-        }
-        return "Fail";
-    }
-
-    public async Task<string> AdminRejectOwnerRequest(Guid ownerRequestId, string? rejectReason)
-    {
-        var query = await _dbContext.OwnerRequests.Include(ownerRequest => ownerRequest.Customer).FirstOrDefaultAsync(x => x.Id == ownerRequestId);
-        if (query!.Status != "Pending")
-        {
-            throw new Exception("Error 500");
-        }
-        if (query.OwnerId != null)
-        {
-            throw new Exception("Error 500");
-        }
-        query.Status = "Reject";
-        query.RejectionReason = rejectReason;
-        query.UpdatedAt = DateTimeOffset.UtcNow;
-        var result = await _dbContext.SaveChangesAsync();
-        //gửi mail
-        var subject = "Người tình trong mộng Ralluhub";
-        var bodyMail = "Cảm ơn bạn đã gửi hồ sơ đăng ký đối tác cho rallyhub.<br>" +
-                       "Tuy nhiên, sau khi xem xét, chúng tôi chưa thể duyệt hồ sơ của bạn vào lúc này.";
-        await _mailService.SendMail(new MailContent()
-        {
-            To = query.Customer.User.Email,
-            Subject = subject,
-            Body = MailTemplate.GenerateRejectionTemplate(query.Customer.User.Email, bodyMail, rejectReason),
-        });
-        if (result > 0)
-        {
-            return "Success";
-        }
-        return "Fail";
-    }
-
-    public async Task DeleteCourt(Guid id)
-    {
-        var court = await  _dbContext.Courts.FirstOrDefaultAsync(x => x.Id == id);
-        if (court == null)
-        {
-            throw new Exception("Không tìm thấy sân");
-        }
-        _dbContext.Courts.Remove(court);
-        await _dbContext.SaveChangesAsync();
-    }
     public async Task BanAndUnbanUser(Request.BanAndUnbanUserRequest request)
     {
         if (request.Status != Enum.Enum.StatusUsers.Banned.ToString() && 
@@ -574,6 +417,163 @@ public class Service: IService
             await _dbContext.SaveChangesAsync();
         }
     }
+//ownerRequest
+    public async Task<Base.Response.PageResult<Response.AdminGetOwnerRequestResponse>> AdminGetOwnerRequest(Base.Request.Pagination request)
+    {
+        var query = _dbContext.OwnerRequests
+            .Include(x => x.Customer)
+            .ThenInclude(c => c.User)
+            .Where(x => x.Status == "Pending");
+
+        if (request.Id != null)
+        {
+            query = query.Where(x => x.CustomerId == request.Id);
+        }
+
+        if (request.Search != null)
+        {
+            query = query.Where(x => 
+                x.BusinessName.Contains(request.Search) ||
+                x.BusinessAddress.Contains(request.Search) ||
+                x.IdentityNumber.Contains(request.Search) ||
+                x.TaxCode.Contains(request.Search));
+        }
+
+        var total = await query.CountAsync();
+
+        query = query.OrderBy(x => x.CreatedAt);
+        query = query
+            .Skip((request.PageIndex - 1) * request.PageSize)
+            .Take(request.PageSize);
+
+        var selectOwenerRequest = query.Select(x => new Response.AdminGetOwnerRequestResponse()
+        {
+            Id = x.Id,
+            UserId = x.Customer.UserId,
+            CustomerId = x.CustomerId,
+            BusinessName = x.BusinessName,
+            TaxCode = x.TaxCode,
+            BusinessAddress = x.BusinessAddress,
+            BusinessLicenseUrl = x.BusinessLicenseUrl,
+            IdentityNumber = x.IdentityNumber,
+            IdentityCardFrontUrl = x.IdentityCardFrontUrl,
+            IdentityCardBackUrl = x.IdentityCardBackUrl,
+            Status = x.Status,
+            CreatedAt = x.CreatedAt,
+            // Thông tin customer từ User entity
+            FirstName = x.Customer.User.FirstName,
+            LastName = x.Customer.User.LastName,
+            Email = x.Customer.User.Email,
+            PhoneNumber = x.Customer.User.PhoneNumber,
+            AvatarUrl = x.Customer.User.AvatarUrl,
+        });
+
+        var listOwnerRequest = await selectOwenerRequest.ToListAsync();
+
+        var result = new Base.Response.PageResult<Response.AdminGetOwnerRequestResponse>()
+        {
+            Items = listOwnerRequest,
+            PageIndex = request.PageIndex,
+            PageSize = request.PageSize,
+            TotalItems = total,
+        };
+        return result;
+    }
+
+    public async Task<string> AdminApprovedOwnerRequest(Guid ownerRequestId)
+    {
+        var query = await _dbContext.OwnerRequests.Include(ownerRequest => ownerRequest.Customer).FirstOrDefaultAsync(x => x.Id == ownerRequestId);
+        if (query!.Status != "Pending")
+        {
+            throw new Exception("Error 500");
+        }
+        if (query.OwnerId != null)
+        {
+            throw new Exception("Error 500");
+        }
+
+        var newOwner = new Repository.Entity.Owner()
+        {
+            UserId = query.Customer.UserId,
+            BusinessName = query.BusinessName,
+            TaxCode = query.TaxCode,
+            BusinessAddress = query.BusinessAddress,
+            BusinessLicenseUrl = query.BusinessLicenseUrl,
+            IdentityNumber = query.IdentityNumber,
+            IdentityCardFrontUrl = query.IdentityCardFrontUrl,
+            IdentityCardBackUrl = query.IdentityCardBackUrl,
+            CreatedAt = DateTimeOffset.UtcNow,
+        };
+        query.Status = "Approved";
+        query.UpdatedAt = DateTimeOffset.UtcNow;
+        var userId = query.Customer.UserId;
+        var queryUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
+        queryUser!.Role = "Owner";
+        _dbContext.Owners.Add(newOwner);
+        var customerId = query.Customer.Id;
+        var customer = await _dbContext.Customers.FirstOrDefaultAsync(x => x.Id == customerId);
+        // _dbContext.Customers.Remove(customer!);
+        var result = await _dbContext.SaveChangesAsync();
+        //gửi mail
+        var subject = "Người tình trong mộng Ralluhub";
+        var bodyMail = "Hồ sơ đăng ký làm chủ sân cầu lông của bạn đã được ban quản trị xét duyệt thành công.<br>" +
+                       "Ngay bây giờ, bạn đã có thể đăng nhập vào hệ thống quản lý của rallyhub để thiết lập giá sân, lịch hoạt động và đón những vị khách đầu tiên.";
+        await _mailService.SendMail(new MailContent()
+        {
+            To = newOwner.User.Email,
+            Subject = subject,
+            Body = MailTemplate.GenerateApprovalTemplate(newOwner.User.Email, bodyMail),
+        });
+        
+        if (result > 0)
+        {
+            return "Success";
+        }
+        return "Fail";
+    }
+
+    public async Task<string> AdminRejectOwnerRequest(Guid ownerRequestId, string? rejectReason)
+    {
+        var query = await _dbContext.OwnerRequests.Include(ownerRequest => ownerRequest.Customer).FirstOrDefaultAsync(x => x.Id == ownerRequestId);
+        if (query!.Status != "Pending")
+        {
+            throw new Exception("Error 500");
+        }
+        if (query.OwnerId != null)
+        {
+            throw new Exception("Error 500");
+        }
+        query.Status = "Reject";
+        query.RejectionReason = rejectReason;
+        query.UpdatedAt = DateTimeOffset.UtcNow;
+        var result = await _dbContext.SaveChangesAsync();
+        //gửi mail
+        var subject = "Người tình trong mộng Ralluhub";
+        var bodyMail = "Cảm ơn bạn đã gửi hồ sơ đăng ký đối tác cho rallyhub.<br>" +
+                       "Tuy nhiên, sau khi xem xét, chúng tôi chưa thể duyệt hồ sơ của bạn vào lúc này.";
+        await _mailService.SendMail(new MailContent()
+        {
+            To = query.Customer.User.Email,
+            Subject = subject,
+            Body = MailTemplate.GenerateRejectionTemplate(query.Customer.User.Email, bodyMail, rejectReason),
+        });
+        if (result > 0)
+        {
+            return "Success";
+        }
+        return "Fail";
+    }
+//court
+    public async Task DeleteCourt(Guid id)
+    {
+        var court = await  _dbContext.Courts.FirstOrDefaultAsync(x => x.Id == id);
+        if (court == null)
+        {
+            throw new Exception("Không tìm thấy sân");
+        }
+        _dbContext.Courts.Remove(court);
+        await _dbContext.SaveChangesAsync();
+    }
     
     public async Task<Base.Response.PageResult<Response.GetPendingCourtsResponse>> GetPendingCourts  
     (Request.GetPendingCourtsRequest request)  
@@ -662,6 +662,7 @@ public class Service: IService
         });  
         
     }
+    
     public async Task<Response.RefundResponse> Refund(Request.RefundRequest request)
     {
         var user = await _dbContext.Users.Include(x => x.Customer)
@@ -698,9 +699,7 @@ public class Service: IService
             ImageUrl = request.ImageUrl
         };
     }
-
     
-
     public async Task<Response.GetWalletResponse> GetWallet(Request.GetWalletRequest request)
     {
         if(request.Email == null || request.Email == "")
@@ -725,6 +724,7 @@ public class Service: IService
             Balance = wallet.Balance,
         };
     }
+    
     public async Task<string> AddBalanceToUser(Request.AddBalanceRequest request)
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == request.UserId);
