@@ -28,6 +28,7 @@ public class Request
     {
         public Guid CourtId { get; set; }
         public string Name { get; set; } = null!;
+        public decimal DefaultPrice { get; set; }
     }
     
     public class GetMySubCourtsRequest  

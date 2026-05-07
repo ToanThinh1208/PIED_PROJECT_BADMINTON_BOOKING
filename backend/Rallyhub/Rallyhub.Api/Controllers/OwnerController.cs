@@ -50,13 +50,13 @@ public class OwnerController : ControllerBase
             , HttpContext.TraceIdentifier));  
     } 
     
-    [HttpPost("OwnerCreateConfigSlot")]  
-    public async Task<IActionResult> CreateConfigSlot([FromBody] Request.CreateConfigSlotRequest request)  
-    {  
-        var result = await _ownerService.CreateConfigSlot(request); 
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Cấu hình các slot thành công"   
-            , HttpContext.TraceIdentifier));  
-    } 
+    // [HttpPost("OwnerCreateConfigSlot")]  
+    // public async Task<IActionResult> CreateConfigSlot([FromBody] Request.CreateConfigSlotRequest request)  
+    // {  
+    //     var result = await _ownerService.CreateConfigSlot(request); 
+    //     return Ok(ApiResponseFactory.SuccessResponse( result,"Cấu hình các slot thành công"   
+    //         , HttpContext.TraceIdentifier));  
+    // } 
     
     [HttpGet("GetConfigSlotBySubCourtId")]  
     public async Task<IActionResult> GetConfigSlotBySubCourtId(Guid subCourtId)  

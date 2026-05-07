@@ -159,6 +159,23 @@ public class Service : IService
         //lưu
         _dbContext.Add(newSubCourt);
         await _dbContext.SaveChangesAsync();
+
+        var slots = new List<ConfigSlot>();
+        var current = court.OpenTime;
+        while (current.AddMinutes(30) <= court.CloseTime)
+        {
+            slots.Add(new ConfigSlot
+            {
+                Id = Guid.NewGuid(),
+                SubCourtDetailId = newSubCourt.Id,
+                StartTime = current,
+                EndTime = current.AddMinutes(30),
+                Price = request.DefaultPrice,
+            });
+            current = current.AddMinutes(30);
+        }
+        _dbContext.ConfigSlots.AddRange(slots);
+        await _dbContext.SaveChangesAsync();
         return new Response.CreateSubCourtResponse
         {
             Id  = newSubCourt.Id,
@@ -244,7 +261,7 @@ public class Service : IService
         };
     }
 
-    public async Task<Response.CreateConfigSlotResponse> CreateConfigSlot(Request.CreateConfigSlotRequest request)
+    /*public async Task<Response.CreateConfigSlotResponse> CreateConfigSlot(Request.CreateConfigSlotRequest request)
     {
         //Lấy token của OwnerId
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
@@ -314,7 +331,7 @@ public class Service : IService
             EndTime = newConfigSlot.EndTime,
             Price = newConfigSlot.Price,
         };
-    }
+    }*/
 
     public async Task<List<Response.GetConfigSlotResponse>> GetConfigSlotBySubCourtId(Guid subCourtId)
     {
