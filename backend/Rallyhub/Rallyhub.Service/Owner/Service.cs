@@ -619,7 +619,7 @@ public class Service : IService
 
         var configSlots = await _dbContext.ConfigSlots
             .Where(x => x.SubCourtDetailId ==  subCourtId)
-            .OrderBy(x => x.SubCourtDetailId)
+            .OrderBy(x => x.StartTime)
             .Select(x => new Response.GetConfigSlotResponse
             {
                 Id = x.Id,

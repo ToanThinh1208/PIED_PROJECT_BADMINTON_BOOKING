@@ -57,14 +57,12 @@ public class Service: IService
             Price = x.Price,
             IsAvailable = true
         }).ToList();
-        //Apply override 
         foreach (var ov in overrides)
         {
-            //remove slot bi override
             result.RemoveAll(x => 
                 x.StartTime >= ov.StartTime && 
                 x.EndTime <= ov.EndTime);
-            //add slot moi
+
             result.Add(new Response.SlotResponse
             {
                 StartTime = ov.StartTime,
@@ -73,22 +71,31 @@ public class Service: IService
                 IsAvailable = true
             });
         }
-        //Apply exception 
+        
         foreach (var ex in exceptions)
         {
             result.RemoveAll(x =>
                 x.StartTime < ex.EndTime &&
                 x.EndTime > ex.StartTime);
+            //
+            result.Add(new Response.SlotResponse
+            {
+                StartTime = ex.StartTime,
+                EndTime = ex.EndTime,
+                IsAvailable = false
+            });
         }
+        
         var bookedSlots = await _dbContext.BookingDetails
             .Where(x =>
                 x.SubCourtId == request.SubCourtId &&
-                x.Date.Date == request.Date.ToDateTime(TimeOnly.MinValue).Date && 
+                x.Date.Date == request.Date.ToDateTime(TimeOnly.MinValue) && 
                 (x.Status == "Pending" || x.Status == "Banked"))
             .ToListAsync();
         
         foreach (var slot in result)
         {
+            if (!slot.IsAvailable) continue;
             slot.IsAvailable = !bookedSlots.Any(b =>
                 b.StartTime < slot.EndTime &&
                 b.EndTime > slot.StartTime);
