@@ -407,7 +407,8 @@ public class Service : IService
             .ToList();
 
         var expected = (request.EndTime - request.StartTime).TotalMinutes;
-        var actual = coveredSlots.Sum(x => (x.EndTime - x.StartTime).TotalMinutes);
+        var actual = coveredSlots.Sum(x => 
+            (x.EndTime - x.StartTime).TotalMinutes);
 
         if (expected != actual)
             throw new Exception("Override không cover full ConfigSlot");
@@ -508,12 +509,40 @@ public class Service : IService
             x.Date == request.Date &&
             request.StartTime < x.EndTime &&
             request.EndTime > x.StartTime);
-
         if (isOverlap)
         {
             throw new Exception("Khoảng thời gian này đã bị khóa rồi");
         }
 
+        //
+        var configSlots = await _dbContext.ConfigSlots
+            .Where(x => x.SubCourtDetailId == request.SubCourtId)
+            .OrderBy(x => x.StartTime)
+            .ToListAsync();
+        
+        var validStart = configSlots.Any(x => x.StartTime == request.StartTime);
+        var validEnd = configSlots.Any(x => x.EndTime == request.StartTime);
+
+        if (!validStart || !validEnd)
+        {
+            throw new Exception("Exception slot phải match với ConfigSlot");
+        }
+        
+        var lockedSlots = configSlots
+            .Where(x => 
+                x.StartTime >= request.StartTime && 
+                x.EndTime <= request.EndTime)
+            .ToList();
+        
+        var excepted = (request.EndTime - request.StartTime).TotalMinutes;
+        var actual = lockedSlots.Sum(x =>
+            (x.EndTime - x.StartTime).TotalMinutes);
+
+        if (excepted != actual)
+        {
+            throw new Exception("Exception slot phải cover full ConfigSlot");
+        }
+        
         var newExceptionSlot = new Repository.Entity.Exception
         {
             Id = Guid.NewGuid(),
@@ -634,16 +663,16 @@ public class Service : IService
     public async Task<List<Response.SlotResponse>> GetAvailableSlots(Request.GetAvailableSlotsRequest request)
     {
         var subCourt = await _dbContext.SubCourts
-            .FirstOrDefaultAsync(x => x.Id == request.SubCourtId);
+            .FirstOrDefaultAsync(x => 
+                x.Id == request.SubCourtId);
         if (subCourt == null)
             throw new Exception("Sân con không tồn tại");
-        //lay config slot
+        
         var configSlots = await _dbContext.ConfigSlots
             .Where(x => x.SubCourtDetailId == request.SubCourtId)
             .OrderBy(x => x.StartTime)
             .ToListAsync();
         
-        //lay override
         var overrides = await _dbContext.OverideSlots
             .Where(x => 
                 x.SubCourtDetailId == request.SubCourtId &&
@@ -652,13 +681,13 @@ public class Service : IService
                      (x.IsRecurring && x.DayOfWeek == request.Date.DayOfWeek)
                             
                 )).ToListAsync();
-        //lay exceptionslot
+
         var exceptions = await  _dbContext.Exceptions
             .Where(x => 
                 x.SubCourtDetailId == request.SubCourtId &&
                 x.Date == request.Date)
             .ToListAsync();
-        //Build slot tu config
+
         var result = configSlots.Select(x => new Response.SlotResponse
         {
             StartTime =  x.StartTime,
@@ -667,14 +696,12 @@ public class Service : IService
             IsAvailable = true
         }).ToList();
         
-        //Apply override 
         foreach (var ov in overrides)
         {
-            //remove slot bi override
             result.RemoveAll(x => 
                 x.StartTime >= ov.StartTime && 
                 x.EndTime <= ov.EndTime);
-            //add slot moi
+
             result.Add(new Response.SlotResponse
             {
                 StartTime = ov.StartTime,
@@ -683,32 +710,35 @@ public class Service : IService
                 IsAvailable = true
             });
         }
-        //Apply exception 
+        
         foreach (var ex in exceptions)
         {
             result.RemoveAll(x =>
                 x.StartTime < ex.EndTime &&
                 x.EndTime > ex.StartTime);
+            //
+            result.Add(new Response.SlotResponse
+            {
+                StartTime = ex.StartTime,
+                EndTime = ex.EndTime,
+                IsAvailable = false
+            });
         }
         
-        //*****//
-        //Check applying Booking ...
-        //Check bookingDetails -> set IsAvailable = false
         var bookedSlots = await _dbContext.BookingDetails
             .Where(x =>
                 x.SubCourtId == request.SubCourtId &&
-                x.Date.Date == request.Date.ToDateTime(TimeOnly.MinValue).Date && 
+                x.Date.Date == request.Date.ToDateTime(TimeOnly.MinValue) && 
                 (x.Status == "Pending" || x.Status == "Banked"))
             .ToListAsync();
         
         foreach (var slot in result)
         {
+            if (!slot.IsAvailable) continue;
             slot.IsAvailable = !bookedSlots.Any(b =>
                 b.StartTime < slot.EndTime &&
                 b.EndTime > slot.StartTime);
         }
-        //sort
-        
         return result.OrderBy(x => x.StartTime).ToList();
     }
 }
