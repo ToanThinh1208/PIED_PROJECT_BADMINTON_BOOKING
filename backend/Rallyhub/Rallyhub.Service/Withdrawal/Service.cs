@@ -50,6 +50,7 @@ public class Service : IService
             CreatedAt = DateTimeOffset.UtcNow
         };
         wallet.Balance -= request.Amount;
+        wallet.Version += 1;
         
         _dbcontext.Withdrawals.Add(newWithdrawal);
         var result = await _dbcontext.SaveChangesAsync();

@@ -29,4 +29,11 @@ public class BookingController: ControllerBase
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
             , HttpContext.TraceIdentifier));
     }
+    [HttpPost("SepayWebhookHandler")]
+    public async Task<IActionResult> SepayWebhookHandler([FromBody] Request.SepayWebhookRequest request)
+    {
+        await _bookingService.SepayWebhookHandler(request);
+        return Ok(ApiResponseFactory.SuccessResponse( "Success","Success" 
+            , HttpContext.TraceIdentifier));
+    }
 }

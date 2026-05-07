@@ -211,7 +211,7 @@ public class Service: IService
     {
         var description = request.Code;
         
-        var raw = description.Replace("RALLYHUB", ""); // TETPEEORDERID -> ORDERID
+        var raw = description.Replace("RALLYHUB", "");
         
         Guid? bookingId = null;
         
@@ -246,7 +246,7 @@ public class Service: IService
             throw new Exception("Order not found");
         }
         
-        if(booking.Status != "Pending") // Đơn hàng đã xử lí rồi mà
+        if(booking.Status != "Pending")
         {
             throw new Exception("Order already processed");
         }
@@ -256,22 +256,10 @@ public class Service: IService
             throw new Exception("Invalid transfer amount");
         }
         
-        // booking.Status = "Banked";
-        // _dbContext.Update(booking);
-        // await _dbContext.SaveChangesAsync();
-        //
-        // var productIds = booking.BookingDetails.Select(x => x.ProductId).ToList();
-        //
-        // // Tìm những sản phẩm chưa trong Cart với các id sau productIds của UserId
-        // var queryProdCart = _dbContext.CartDetails.Where(x =>
-        //     x.Cart.UserId == order.UserId &&
-        //     productIds.Contains(x.ProductId)
-        // );
-        //
-        // var removeCartDetails = await queryProdCart.ToListAsync();
-        //
-        // _dbContext.RemoveRange(removeCartDetails);
-        //
-        // await _dbContext.SaveChangesAsync();
+        booking.Status = "Banked";
+        _dbContext.Update(booking);
+        await _dbContext.SaveChangesAsync();
+        
+        await _dbContext.SaveChangesAsync();
     }
 }
