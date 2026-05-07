@@ -4,7 +4,7 @@ public class Response
 {
     public class GetTransactionResponse
     {
-        public string Type { get; set; }
+        public required string Type { get; set; }
         public decimal Amount { get; set; }
         public decimal BalanceBefore { get; set; }
         public decimal BalanceAfter  { get; set; }
@@ -16,7 +16,7 @@ public class Response
   
         public string? ActionCode { get; set; }
         public string? Signature { get; set; }
-        public string Status { get; set; }
+        public string Status { get; set; } = "Success";
     
         public Guid? BookingId { get; set; }
         public Guid WalletId { get; set; }

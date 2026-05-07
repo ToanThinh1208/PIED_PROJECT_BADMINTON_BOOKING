@@ -4,5 +4,5 @@ public interface IService
 {
     public Task<List<Response.SlotResponse>> GetAvailableSlots(Request.GetAvailableSlotsRequest request);
     public Task<Response.CreateBookingResponse> CreateBooking(Request.HoldBookingRequest request);
-    public Task SepayWebhookHandler(Request.SepayWebhookRequest request);
+    public Task<bool> SepayWebhookHandler(Request.SepayWebhookRequest request);
 }

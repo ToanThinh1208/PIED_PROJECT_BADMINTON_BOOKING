@@ -214,7 +214,7 @@ public class Service: IService
         };
     }
     
-    public async Task SepayWebhookHandler(Request.SepayWebhookRequest request)
+    public async Task<bool> SepayWebhookHandler(Request.SepayWebhookRequest request)
     {
         var description = request.Code;
         
@@ -265,8 +265,11 @@ public class Service: IService
         
         booking.Status = "Banked";
         _dbContext.Update(booking);
-        await _dbContext.SaveChangesAsync();
-        
-        await _dbContext.SaveChangesAsync();
+        var result = await _dbContext.SaveChangesAsync();
+        if (result > 0)
+        {
+            return true;
+        }
+        return false;
     }
 }
