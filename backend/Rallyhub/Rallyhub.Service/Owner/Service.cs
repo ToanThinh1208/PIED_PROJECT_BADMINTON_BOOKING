@@ -297,7 +297,7 @@ public class Service : IService
             Price = newConfigSlot.Price,
         };
     }*/
-    public async Task<List<Response.GetConfigSlotResponse>> GetConfigSlotBySubCourtId(Request.GetConfigSlotRequest request)
+    public async Task<List<Response.GetConfigSlotResponse>> GetConfigSlotBySubCourtId(Guid subCourtId)
     {
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
         if (ownerIdClaim == null)  
@@ -308,7 +308,7 @@ public class Service : IService
 
         var existSubCourt = _dbContext.SubCourts
             .Include(x => x.Court)
-            .FirstOrDefault(x => x.Id == request.SubCourtId);   
+            .FirstOrDefault(x => x.Id == subCourtId);   
         if (existSubCourt == null)
         {
             throw new Exception("Sân con không tồn tại");
@@ -320,7 +320,7 @@ public class Service : IService
         }
         
         var slots = await _dbContext.ConfigSlots
-            .Where(x => x.SubCourtDetailId == request.SubCourtId)
+            .Where(x => x.SubCourtDetailId == subCourtId)
             .OrderBy(x => x.StartTime)
             .Select(x => new Response.GetConfigSlotResponse()
             {
@@ -436,7 +436,6 @@ public class Service : IService
             Price = overrideSlot.Price,
         };
     }
-
     public async Task<List<Response.GetOverrideSlotResponse>> GetOverrideSlotBySubCourtId(Guid subCourtId)
     {
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 

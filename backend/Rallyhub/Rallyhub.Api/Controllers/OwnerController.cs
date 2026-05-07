@@ -59,9 +59,9 @@ public class OwnerController : ControllerBase
     // } 
     
     [HttpGet("OwnerGetConfigSlot")]  
-    public async Task<IActionResult> GetConfigSlotBySubCourtId(Request.GetConfigSlotRequest request)  
+    public async Task<IActionResult> GetConfigSlotBySubCourtId(Guid subCourtId)  
     {  
-        var result = await _ownerService.GetConfigSlotBySubCourtId(request); 
+        var result = await _ownerService.GetConfigSlotBySubCourtId(subCourtId); 
         return Ok(ApiResponseFactory.SuccessResponse( result,"Lấy thành công danh sách các slots"   
             , HttpContext.TraceIdentifier));  
     }
