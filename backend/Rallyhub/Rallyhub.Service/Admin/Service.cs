@@ -596,12 +596,18 @@ public class Service: IService
     query = query        .Skip((request.PageIndex - 1) * request.PageSize)  
         .Take(request.PageSize);  
   
-    var result = query.Select(x => new Response.GetPendingCourtsResponse()  
+    var queryWithInclude = query.Include(x => x.Owner);
+    var result = queryWithInclude.Select(x => new Response.GetPendingCourtsResponse()  
     {  
         CourtId =  x.Id,  
         OwnerId =  x.OwnerId,  
+        OwnerName = x.Owner.BusinessName,
         Name = x.Name,  
         Status = x.Status,  
+        Address = x.Address,
+        OpenTime = x.OpenTime,
+        CloseTime = x.CloseTime,
+        PictureUrl = x.PictureUrl,
     });  
     var listResult = await result.ToListAsync();  
     return new Base.Response.PageResult<Response.GetPendingCourtsResponse>()  
