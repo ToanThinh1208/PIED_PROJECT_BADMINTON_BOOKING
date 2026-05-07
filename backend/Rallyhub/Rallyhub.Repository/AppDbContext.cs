@@ -381,14 +381,14 @@
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Name)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(200);
                 builder.HasIndex(x => x.Name).IsUnique();
                 builder.Property(x => x.Address)
                     .IsRequired()
-                    .HasMaxLength(100);
+                    .HasMaxLength(500);
                 builder.Property(x => x.PictureUrl)
                     .IsRequired()
-                    .HasMaxLength(200);
+                    .HasMaxLength(1000);
                 builder.Property(x => x.OpenTime);
                 builder.Property(x => x.CloseTime);
                 builder.Property(x => x.Status)
@@ -396,12 +396,12 @@
                     .HasMaxLength(50)
                     .HasDefaultValue("Active");
                 builder.Property(x => x.Latitude)
-                    .HasColumnType("decimal(10,8)");
+                    .HasColumnType("decimal(18,10)");
                 builder.Property(x => x.Longitude)
-                    .HasColumnType("decimal(11,8)");
+                    .HasColumnType("decimal(18,10)");
                 builder.Property(x => x.MapUrl)
                     .IsRequired()
-                    .HasMaxLength(200);
+                    .HasMaxLength(1000);
                 builder.HasOne(x => x.Owner)
                     .WithMany(x => x.Courts)
                     .HasForeignKey(x => x.OwnerId)

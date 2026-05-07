@@ -21,6 +21,7 @@ const ADMIN_NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
   { icon: Users, label: "Người dùng", path: "/admin/users" },
   { icon: FileCheck, label: "Duyệt chủ sân", path: "/admin/owner-requests" },
+  { icon: ShieldCheck, label: "Duyệt sân", path: "/admin/court-approvals" },
   { icon: Building2, label: "Sân cầu lông", path: "/admin/courts" },
   { icon: DollarSign, label: "Tài chính", path: "/admin/finance" },
 ];

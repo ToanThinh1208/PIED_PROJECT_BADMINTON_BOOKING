@@ -13,6 +13,10 @@ public class Response
         public Guid Id { get; set; }
         public string Name { get; set; } = null!;  
         public string Status { get; set; } = null!;  
+        public string Address { get; set; } = null!;
+        public TimeOnly OpenTime { get; set; }
+        public TimeOnly CloseTime { get; set; }
+        public string PictureUrl { get; set; } = null!;
     }
     
     public class CreateSubCourtResponse

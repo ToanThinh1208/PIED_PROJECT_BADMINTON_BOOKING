@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Rallyhub.Repository;
@@ -106,6 +106,10 @@ public class Service : IService
                 Id = x.Id,
                 Name = x.Name,  
                 Status = x.Status,  
+                Address = x.Address,
+                OpenTime = x.OpenTime,
+                CloseTime = x.CloseTime,
+                PictureUrl = x.PictureUrl,
             });  
         var listResult = await selectedQuery.ToListAsync();  
   
