@@ -3,7 +3,7 @@
 public interface IService
 {
     public Task<Response.CreateCourtResponse> CreateCourt(Request.CreateCourtRequest request);  
-    public Task<Base.Response.PageResult<Response.GetMyCourtsResponse>> GetAllMyCourts(Base.Request.Pagination request);
+    public Task<Base.Response.PageResult<Response.GetMyCourtsResponse>> GetAllMyCourts(Request.GetAllMyCourtsRequest request);
     public Task<Response.CreateSubCourtResponse> CreateSubCourt(Request.CreateSubCourtRequest request);
     public Task<Base.Response.PageResult<Response.GetMySubCourtsResponse>> GetMySubCourts(Request.GetMySubCourtsRequest request);
     //public Task<Response.CreateConfigSlotResponse> CreateConfigSlot(Request.CreateConfigSlotRequest request);

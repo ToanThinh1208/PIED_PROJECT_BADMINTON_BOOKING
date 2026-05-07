@@ -59,7 +59,7 @@ public class Service : IService
             Status = court.Status,  
         };  
     }  
-    public async Task<Base.Response.PageResult<Response.GetMyCourtsResponse>> GetAllMyCourts(Base.Request.Pagination request)  
+    public async Task<Base.Response.PageResult<Response.GetMyCourtsResponse>> GetAllMyCourts(Request.GetAllMyCourtsRequest request)  
     {        
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
         if (ownerIdClaim == null)  
@@ -70,16 +70,11 @@ public class Service : IService
         var query = _dbContext.Courts
             .OrderBy(x => x.Name)
             .Where(x => x.OwnerId == ownerIdGuid);
-            
-        if (request.Id != null)
-        {
-            query = query.Where(x => x.Id == request.Id);
-        }
-        if (request.Search != null)  
+        if (request.Name != null)  
         {            
             query = query.Where(x =>   
                 x.Name.Trim().ToLower()  
-                    .Contains(request.Search.Trim().ToLower()));  
+                    .Contains(request.Name.Trim().ToLower()));  
         }
         var totalItems = await query.CountAsync();  
         query = query.OrderBy(x => x.Name);  
@@ -164,41 +159,29 @@ public class Service : IService
             Name = newSubCourt.Name,
         };
     }
-
     public async Task<Base.Response.PageResult<Response.GetMySubCourtsResponse>> GetMySubCourts(Request.GetMySubCourtsRequest request)
     {   
-        if (request.PageIndex <= 0)  
-        {            
-            throw new ArgumentException("PageIndex must be greater than 0");  
-        }  
-        if (request.PageSize <= 0)  
-        {            
-            throw new ArgumentException("PageSize must be greater than 0");  
-        }        
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
-        if (string.IsNullOrEmpty(ownerIdClaim))  
+        if (ownerIdClaim == null)  
         {            
             throw new Exception("Owner không tồn tại");  
         }        
         var ownerIdGuid = Guid.Parse(ownerIdClaim);
-        if (request.CourtId.HasValue)
+        
+        if (request.CourtId != null)
         {
             var court = await _dbContext.Courts
                 .FirstOrDefaultAsync(x => 
-                    x.Id == request.CourtId.Value 
-                    && x.OwnerId == ownerIdGuid);
-            if (court == null)
+                    x.Id == request.CourtId && 
+                    x.OwnerId == ownerIdGuid);
+            if (court == null || court.Status != "Active")
             {
-                throw new Exception("Sân không tồn tại");
-            }
-
-            if (court.Status != nameof(StatusCourt.Active))
-            {
-                throw new Exception("Sân không tồn tại");
+                throw new Exception("Sân chưa được vận hành");
             }
             
             var hasSubCourt = await _dbContext.SubCourts
-                .AnyAsync(x => x.CourtId == request.CourtId);
+                .AnyAsync(x => 
+                    x.CourtId == request.CourtId);
             if (!hasSubCourt)
             {
                 throw new Exception($"Sân {request.Name} không tồn tại sân con");
@@ -209,14 +192,14 @@ public class Service : IService
             .Include(x => x.Court)
             .Where(x =>
                 x.Court.OwnerId == ownerIdGuid &&
-                x.Court.Status == nameof(StatusCourt.Active))
+                x.Court.Status == "Active")
             .AsQueryable();
-        if (request.CourtId.HasValue)
+        if (request.CourtId != null)
         {
-            query = query.Where(x => x.Court.Id == request.CourtId.Value);
+            query = query.Where(x => x.Court.Id == request.CourtId);
         }
 
-        if (!string.IsNullOrEmpty(request.Name))
+        if (request.Name != null)
         {
             query = query.Where(x => 
                 x.Name.Trim().ToLower() 
@@ -230,9 +213,9 @@ public class Service : IService
             .Take(request.PageSize)
             .Select(x => new Response.GetMySubCourtsResponse
             {
-                Id = x.Id,
-                Name = x.Name,
                 CourtId = x.Court.Id,
+                SubCourtId = x.Id,
+                Name = x.Name,
             }).ToListAsync();
         return new Base.Response.PageResult<Response.GetMySubCourtsResponse>
         {

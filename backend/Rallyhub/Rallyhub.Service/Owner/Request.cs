@@ -17,11 +17,9 @@ public class Request
         public required IFormFile PictureUrl { get; set; }  
     }  
   
-    public class GetMyCourtsRequest  
-    {  
+    public class GetAllMyCourtsRequest: Base.Request.PagingRequest
+    { 
         public string? Name { get; set; }  
-        public int PageIndex { get; set; } = 1;   
-        public int PageSize { get; set; } = 10;  
     }
 
     public class CreateSubCourtRequest
@@ -31,12 +29,10 @@ public class Request
         public decimal DefaultPrice { get; set; }
     }
     
-    public class GetMySubCourtsRequest  
+    public class GetMySubCourtsRequest: Base.Request.PagingRequest
     {  
         public Guid? CourtId { get; set; }
         public string? Name { get; set; }  
-        public int PageIndex { get; set; } = 1;   
-        public int PageSize { get; set; } = 10;  
     }
 
     // public class CreateConfigSlotRequest
