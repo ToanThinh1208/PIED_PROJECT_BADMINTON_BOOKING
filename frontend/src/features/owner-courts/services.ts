@@ -6,8 +6,8 @@ export const ownerCourtService = {
   createCourt: async (data: CreateCourtRequest) => {
     const formData = new FormData();
     formData.append("Name", data.name);
-    formData.append("OpenTime", data.openTime);
-    formData.append("CloseTime", data.closeTime);
+    formData.append("OpenTime", data.openTime.includes(":") && data.openTime.split(":").length === 2 ? `${data.openTime}:00` : data.openTime);
+    formData.append("CloseTime", data.closeTime.includes(":") && data.closeTime.split(":").length === 2 ? `${data.closeTime}:00` : data.closeTime);
     formData.append("Address", data.address);
     formData.append("Latitude", data.latitude.toString());
     formData.append("Longitude", data.longitude.toString());

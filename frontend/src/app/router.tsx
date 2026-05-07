@@ -19,6 +19,7 @@ import { BookingHistoryPage } from "@/features/bookings";
 import { OwnerRequestsPage } from "@/features/admin-owner-requests";
 import OwnerLayout from "@/shared/layouts/OwnerLayout";
 import OwnerCourtsPage from "@/features/owner-courts/pages/OwnerCourtsPage";
+import AdminCourtsPage from "@/features/admin-courts/pages/AdminCourtsPage";
 
 /**
  * React Router v6 config – createBrowserRouter (Data API).
@@ -104,6 +105,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "owner-requests", element: <OwnerRequestsPage /> },
+      { path: "court-approvals", element: <AdminCourtsPage /> },
     ],
   },
 

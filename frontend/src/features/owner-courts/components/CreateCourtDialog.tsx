@@ -34,8 +34,8 @@ export const CreateCourtDialog = () => {
     resolver: zodResolver(createCourtSchema),
     defaultValues: {
       name: "",
-      openTime: "05:00",
-      closeTime: "22:00",
+      openTime: "05:00:00",
+      closeTime: "22:00:00",
       address: "",
       latitude: 10.762622, // Default HCM
       longitude: 106.660172,
@@ -92,7 +92,7 @@ export const CreateCourtDialog = () => {
                   <FormItem>
                     <FormLabel>Giờ mở cửa</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input type="time" step="1" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -105,7 +105,7 @@ export const CreateCourtDialog = () => {
                   <FormItem>
                     <FormLabel>Giờ đóng cửa</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input type="time" step="1" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
