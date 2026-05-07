@@ -439,15 +439,12 @@ public class Service : IService
 
     public async Task<List<Response.GetOverrideSlotResponse>> GetOverrideSlotBySubCourtId(Guid subCourtId)
     {
-        //Lấy token của OwnerId
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
-        if (string.IsNullOrEmpty(ownerIdClaim))  
+        if (ownerIdClaim == null)  
         {            
             throw new Exception("Owner không tồn tại");  
         }        
         var ownerIdGuid = Guid.Parse(ownerIdClaim);
-        
-        //check subCort + Owner
         var subCourt = await _dbContext.SubCourts
             .Include(x => x.Court)
             .FirstOrDefaultAsync(x => x.Id == subCourtId);
@@ -455,12 +452,10 @@ public class Service : IService
         {
             throw new Exception("Sân con không tồn tại!");
         }
-
         if (subCourt.Court.OwnerId != ownerIdGuid)
         {
             throw new Exception("Bạn không có quyền");
         }
-        //
         var overrideSlots = await   _dbContext.OverideSlots
             .Where(x => x.SubCourtDetailId == subCourtId)
             .OrderBy(x => x.Date)
