@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Rallyhub.Repository;
@@ -61,6 +61,14 @@ public class Service : IService
     }  
     public async Task<Base.Response.PageResult<Response.GetMyCourtsResponse>> GetAllMyCourts(Request.GetAllMyCourtsRequest request)  
     {        
+        if (request.PageIndex <= 0)  
+        {            
+            throw new ArgumentException("Số trang phải lớn hơn 0");  
+        }  
+        if (request.PageSize <= 0)  
+        {            
+            throw new ArgumentException("Các phần tử trong trang phải lớn hơn 0");  
+        }        
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
         if (ownerIdClaim == null)  
         {            
@@ -87,8 +95,11 @@ public class Service : IService
                 CourtId = x.Id,
                 Name = x.Name,  
                 Status = x.Status,
+                Address = x.Address,
                 StartTime = x.OpenTime,
-                EndTime = x.CloseTime
+                EndTime = x.CloseTime,
+                PictureUrl = x.PictureUrl,
+
             });  
         var listResult = await selectedQuery.ToListAsync();  
   

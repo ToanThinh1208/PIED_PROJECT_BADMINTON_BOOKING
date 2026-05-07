@@ -9,8 +9,10 @@ export interface PaginationMeta {
 }
 
 export interface PaginatedResponse<T> {
-  data: T[];
-  meta: PaginationMeta;
+  items: T[];
+  totalItems: number;
+  pageSize: number;
+  pageIndex: number;
 }
 
 // ─── Base filter params ──────────────────────────────────
