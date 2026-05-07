@@ -27,7 +27,7 @@ public class WalletController : ControllerBase
     public async Task<IActionResult> GetInforWallet()
     {
         var result = await _walletService.GetInforWallet();
-        return Ok(ApiResponseFactory.SuccessResponse(result, "Success remove bank wallet", HttpContext.TraceIdentifier));
+        return Ok(ApiResponseFactory.SuccessResponse(result, "Success get infor wallet", HttpContext.TraceIdentifier));
     }
     
     [HttpPatch("RemoveBankWallet")]

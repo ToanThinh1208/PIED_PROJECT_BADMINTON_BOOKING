@@ -829,26 +829,20 @@
                     .IsRequired()
                     .HasColumnType("decimal(18,2)");
                 builder.Property(x => x.SePayId)
-                    .IsRequired()
                     .HasMaxLength(50);
                 builder.HasIndex(x => x.SePayId).IsUnique();
                 builder.Property(x => x.BankRefCode)
-                    .IsRequired()
                     .HasMaxLength(50);
                 builder.HasIndex(x => x.BankRefCode).IsUnique();
                 builder.Property(x => x.BankAccountNumber)
-                    .IsRequired()
                     .HasMaxLength(500);
                 builder.Property(x => x.TransferContent)
-                    .IsRequired()
                     .HasMaxLength(500);
                 builder.Property(x => x.ActionCode)
-                    .IsRequired()
                     .HasMaxLength(50);
                 builder.HasIndex(x => x.ActionCode).IsUnique();
                 
                 builder.Property(x => x.Signature)
-                    .IsRequired()
                     .HasMaxLength(50);
                 builder.Property(x => x.Status)
                     .IsRequired()
@@ -856,7 +850,7 @@
                 builder.HasOne(x => x.Booking)
                     .WithMany(x => x.Transactions)
                     .HasForeignKey(x => x.BookingId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.SetNull);
                 builder.HasOne(x => x.Wallet)
                     .WithMany(x => x.Transactions)
                     .HasForeignKey(x => x.WalletId)

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Ocsp;
 using Quartz.Util;
@@ -11,11 +11,13 @@ public class Service: IService
 {
     private readonly AppDbContext _dbContext;
     private readonly MailService.IService _mailService;
+    private readonly Transaction.IService _transactionService;
 
-    public Service(AppDbContext dbContext, MailService.IService mailService)
+    public Service(AppDbContext dbContext, MailService.IService mailService, Transaction.IService transactionService)
     {
         _dbContext = dbContext;
         _mailService = mailService;
+        _transactionService = transactionService;
     }
 
     public async Task<Base.Response.PageResult<Response.UserDto>>
@@ -153,7 +155,6 @@ public class Service: IService
     
     public async Task<Base.Response.PageResult<Response.AdminGetOwnerRequestResponse>> AdminGetOwnerRequest(Base.Request.Pagination request)
     {
-        //Customer và User để lấy thông tin cá nhân
         var query = _dbContext.OwnerRequests
             .Include(x => x.Customer)
             .ThenInclude(c => c.User)
@@ -214,7 +215,7 @@ public class Service: IService
         return result;
     }
 
-    public async Task<string> AdminAcceptOwnerRequest(Guid ownerRequestId)
+    public async Task<string> AdminApprovedOwnerRequest(Guid ownerRequestId)
     {
         var query = await _dbContext.OwnerRequests.Include(ownerRequest => ownerRequest.Customer).FirstOrDefaultAsync(x => x.Id == ownerRequestId);
         if (query!.Status != "Pending")
@@ -238,7 +239,7 @@ public class Service: IService
             IdentityCardBackUrl = query.IdentityCardBackUrl,
             CreatedAt = DateTimeOffset.UtcNow,
         };
-        query.Status = "Accept";
+        query.Status = "Approved";
         query.UpdatedAt = DateTimeOffset.UtcNow;
         var userId = query.Customer.UserId;
         var queryUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
@@ -724,6 +725,48 @@ public class Service: IService
             Balance = wallet.Balance,
         };
     }
+    public async Task<string> AddBalanceToUser(Request.AddBalanceRequest request)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == request.UserId);
+        if (user == null)
+        {
+            throw new Exception("User not exsit");
+        }
+        if (request.Amount <= 0)
+        {
+            throw new Exception("Amount must be greater than 0");
+        }
+        
+        var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(x => x.UserId == request.UserId);
+        if (wallet == null)
+        {
+            throw new Exception("Not found wallet");
+        }
+
+        wallet.Balance += request.Amount;
+        wallet.Version += 1;
+        wallet.UpdatedAt = DateTimeOffset.UtcNow;
+        _dbContext.Wallets.Update(wallet);
+
+        //add transaction
+        
+        try
+        {
+            var result = await _dbContext.SaveChangesAsync();
+            if (result > 0)
+            {
+                return "Success";
+            }
+            return "Fail";
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new Exception("The system is processing another transaction on this wallet. Please try again later.");
+        }
+
+
+    }
+
     public async Task<List<Response.GetBookingDetailStatusRefundPendingResponse>> GetBookingDetailStatusRefundPending()
     {
         var bookingDetailStatusRefundPending =

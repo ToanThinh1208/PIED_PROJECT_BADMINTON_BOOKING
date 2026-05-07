@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rallyhub.Api.Extention;
 using Rallyhub.Repository;
@@ -47,7 +47,7 @@ public class AdminController: ControllerBase
     [HttpGet("AcceptCreateOwner")]
     public async Task<IActionResult> AdminAcceptOwnerRequest(Guid ownerRequestId)
     {
-        var result = await _adminService.AdminAcceptOwnerRequest(ownerRequestId);
+        var result = await _adminService.AdminApprovedOwnerRequest(ownerRequestId);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
     }
     
@@ -114,5 +114,12 @@ public class AdminController: ControllerBase
     {
         var result = await _adminService.GetBookingDetailStatusRefundPending();
         return Ok(ApiResponseFactory.SuccessResponse(result, "Danh sách Booking Detail Status Refund Pending", HttpContext.TraceIdentifier));
+    }
+
+    [HttpPost("AddBalanceToUser")]
+    public async Task<IActionResult> AddBalanceToUser([FromBody] Request.AddBalanceRequest request)
+    {
+        var result = await _adminService.AddBalanceToUser(request);
+        return Ok(ApiResponseFactory.SuccessResponse(result, "Đã cộng tiền thành công cho user", HttpContext.TraceIdentifier));
     }
 }

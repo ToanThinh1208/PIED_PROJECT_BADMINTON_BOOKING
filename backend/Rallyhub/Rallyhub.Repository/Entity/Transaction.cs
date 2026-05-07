@@ -1,4 +1,4 @@
-﻿using Rallyhub.Repository.Abtraction;
+using Rallyhub.Repository.Abtraction;
 
 namespace Rallyhub.Repository.Entity;
 
@@ -9,17 +9,17 @@ public class Transaction : BaseEntity<Guid>, IAuditableEntity
     public decimal BalanceBefore { get; set; }
     public decimal BalanceAfter  { get; set; }
     
-    public required string SePayId { get; set; } //unique
-    public required string BankRefCode { get; set; } //unique
-    public required string BankAccountNumber { get; set; }
-    public required string TransferContent { get; set; }
+    public string? SePayId { get; set; } //unique
+    public string? BankRefCode { get; set; } //unique
+    public string? BankAccountNumber { get; set; }
+    public string? TransferContent { get; set; }
   
-    public required string ActionCode { get; set; } //unique
-    public required string Signature { get; set; }
+    public string? ActionCode { get; set; } //unique
+    public string? Signature { get; set; }
     public string Status { get; set; } = "Success";
     
-    public Guid BookingId { get; set; }
-    public Booking Booking { get; set; }
+    public Guid? BookingId { get; set; }
+    public Booking? Booking { get; set; }
     public Guid WalletId { get; set; }
     public Wallet Wallet { get; set; }
     

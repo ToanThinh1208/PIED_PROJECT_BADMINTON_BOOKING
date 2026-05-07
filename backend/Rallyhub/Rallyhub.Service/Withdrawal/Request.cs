@@ -6,4 +6,12 @@ public class Request
     {
         public required decimal Amount { get; set; }
     }
+    
+    public class GetWithdrawalRequest()
+    {
+        public Guid? UserId { get; set; } = null;
+        public DateTimeOffset? CreatedAt { get; set; }  = null;
+
+    }
+    
 }
