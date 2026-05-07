@@ -22,38 +22,24 @@ public class Service : IService
     public async Task<Response.CreateCourtResponse> CreateCourt(Request.CreateCourtRequest request)  
     {        
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
-        if (string.IsNullOrEmpty(ownerIdClaim))  
+        if (ownerIdClaim == null)  
         {            
             throw new Exception("Owner không tồn tại");  
         }        
         var ownerIdGuid = Guid.Parse(ownerIdClaim);  
-        if (string.IsNullOrEmpty(request.Name))  
-        {            
-            throw new Exception("Tên sân không được bỏ trống");  
-        }  
-        if (request.OpenTime >= request.CloseTime)  
-        {            
-            throw new Exception("Giờ mở phải nhỏ hơn giờ đóng");  
-        }        
-        var existingOwnerQuery = _dbContext.Owners.Where(x => x.Id == ownerIdGuid);  
-        bool isExistOwner = await existingOwnerQuery.AnyAsync();  
-        if (!isExistOwner)  
-        {            
-            throw new Exception("Chủ sân không tồn tại trên hệ thống");  
-        }  
-        var existingCourtQuery = _dbContext.Courts.Where  
-        (x => x.Name.ToLower().Trim() == request.Name.ToLower().Trim()  
-              && ownerIdGuid == x.OwnerId);  
+        var existingCourtQuery = _dbContext.Courts.Where(x => 
+            x.Name.ToLower().Trim() == request.Name.ToLower().Trim() && 
+            ownerIdGuid == x.OwnerId);  
         bool isExistCourt = await existingCourtQuery.AnyAsync();  
         if (isExistCourt)  
         {            
-            throw new Exception("Sân này đã tồn tại trên hệ thống của bạn");  
+            throw new Exception($"Sân tên: {request.Name} đã tồn tại trên hệ thống của bạn");  
         }  
         var court = new Repository.Entity.Court()  
         {  
             Id = Guid.NewGuid(),  
             OwnerId = ownerIdGuid,  
-            Name = request.Name.Trim(),  
+            Name = request.Name,  
             Address = request.Address,  
             OpenTime = request.OpenTime,  
             CloseTime = request.CloseTime,  
@@ -61,7 +47,7 @@ public class Service : IService
             Longitude = request.Longitude,  
             MapUrl = request.MapUrl,  
             PictureUrl = await _mediaService.UploadImageAsync(request.PictureUrl),  
-            Status = nameof(StatusCourt.Pending),  
+            Status = "Pending",  
         };  
   
         _dbContext.Add(court);  
@@ -73,38 +59,37 @@ public class Service : IService
             Status = court.Status,  
         };  
     }  
-    public async Task<Base.Response.PageResult<Response.GetMyCourtsResponse>> GetAllMyCourts(Request.GetMyCourtsRequest request)  
+    public async Task<Base.Response.PageResult<Response.GetMyCourtsResponse>> GetAllMyCourts(Base.Request.Pagination request)  
     {        
-        if (request.PageIndex <= 0)  
-        {            
-            throw new ArgumentException("Số trang phải lớn hơn 0");  
-        }  
-        if (request.PageSize <= 0)  
-        {            
-            throw new ArgumentException("Các phần tử trong trang phải lớn hơn 0");  
-        }        
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
-
-        if (string.IsNullOrEmpty(ownerIdClaim))  
+        if (ownerIdClaim == null)  
         {            
             throw new Exception("Owner không tồn tại");  
         }        
-        var ownerIdGuid = Guid.Parse(ownerIdClaim);  
-        var query = _dbContext.Courts.Where(x => x.OwnerId == ownerIdGuid);  
-        if (!string.IsNullOrEmpty(request.Name))  
+        var ownerIdGuid = Guid.Parse(ownerIdClaim);
+        var query = _dbContext.Courts
+            .OrderBy(x => x.Name)
+            .Where(x => x.OwnerId == ownerIdGuid);
+            
+        if (request.Id != null)
+        {
+            query = query.Where(x => x.Id == request.Id);
+        }
+        if (request.Search != null)  
         {            
             query = query.Where(x =>   
                 x.Name.Trim().ToLower()  
-                    .Contains(request.Name.Trim().ToLower()));  
-        }        
+                    .Contains(request.Search.Trim().ToLower()));  
+        }
         var totalItems = await query.CountAsync();  
         query = query.OrderBy(x => x.Name);  
-        query = query.Skip((request.PageIndex - 1) * request.PageSize)  
-                        .Take(request.PageSize);  
+        query = query
+            .Skip((request.PageIndex - 1) * request.PageSize)  
+            .Take(request.PageSize);  
         var selectedQuery = query  
             .Select(x => new Response.GetMyCourtsResponse()  
             {  
-                Id = x.Id,
+                CourtId = x.Id,
                 Name = x.Name,  
                 Status = x.Status,  
             });  
@@ -119,48 +104,42 @@ public class Service : IService
         };  
         return result;  
     }
-
     public async Task<Response.CreateSubCourtResponse> CreateSubCourt(Request.CreateSubCourtRequest request)
     {
-        //kiểm tra owner
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
-  
-        if (string.IsNullOrEmpty(ownerIdClaim))  
+        if (ownerIdClaim == null)  
         {            
             throw new Exception("Owner không tồn tại");  
         }
         var ownerIdGuid = Guid.Parse(ownerIdClaim); 
-        //check court tồn tại
         var court = await _dbContext.Courts
-            .FirstOrDefaultAsync(x => x.Id == request.CourtId && x.Status == nameof(StatusCourt.Active));
+            .FirstOrDefaultAsync(x => 
+                x.Id == request.CourtId && 
+                x.Status == "Active");
         if (court == null)
         {
             throw new Exception("Không tìm thấy sân");
         }
-        //check sân đó có phải của thằng đó không
         if (court.OwnerId != ownerIdGuid)
         {
             throw new Exception("Sân đó không phải của bạn");
         }
-        //kiểm tra trùng tên
-        var isExistName = await _dbContext.SubCourts.AnyAsync(
-            x => x.CourtId == request.CourtId
-            && x.Name.Trim().ToLower() == request.Name.Trim().ToLower());
+        var isExistName = await _dbContext.SubCourts.AnyAsync(x => 
+            x.CourtId == request.CourtId && 
+            x.Name.Trim().ToLower() == request.Name.Trim().ToLower());
         if (isExistName)
         {
             throw new Exception("Sân con đó đã tồn tại!");
         }
-        //tạo sân
         var newSubCourt =  new SubCourt
         {
             Id = Guid.NewGuid(),
             CourtId =  request.CourtId,
             Name = request.Name,
         };
-        //lưu
         _dbContext.Add(newSubCourt);
         await _dbContext.SaveChangesAsync();
-
+        //create slot
         var slots = new List<ConfigSlot>();
         var current = court.OpenTime;
         while (current.AddMinutes(30) <= court.CloseTime)
@@ -179,7 +158,7 @@ public class Service : IService
         await _dbContext.SaveChangesAsync();
         return new Response.CreateSubCourtResponse
         {
-            Id  = newSubCourt.Id,
+            CourtId  = newSubCourt.Id,
             Name = newSubCourt.Name,
         };
     }

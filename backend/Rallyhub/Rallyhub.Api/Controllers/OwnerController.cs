@@ -27,7 +27,7 @@ public class OwnerController : ControllerBase
     }  
   
     [HttpGet("OwnerGetAllCourts")]  
-    public async Task<IActionResult> GetAllCourts([FromQuery] Request.GetMyCourtsRequest request)  
+    public async Task<IActionResult> GetAllCourts([FromQuery]Service.Base.Request.Pagination request)  
     {  
         var result = await _ownerService.GetAllMyCourts(request);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Xem danh sách các sân đã đăng kí thành công"   
