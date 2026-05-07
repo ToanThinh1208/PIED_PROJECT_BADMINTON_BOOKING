@@ -12,12 +12,14 @@ public class Response
     {  
         public Guid CourtId { get; set; }
         public string Name { get; set; } = null!;  
-        public string Status { get; set; } = null!;  
+        public string Status { get; set; } = null!;
+        public TimeOnly StartTime { get; set; }
+        public TimeOnly EndTime { get; set; }
     }
     
     public class CreateSubCourtResponse
     {
-        public Guid CourtId { get; set; }
+        public Guid SubCourtId { get; set; }
         public string Name { get; set; } = null!;
     }
     

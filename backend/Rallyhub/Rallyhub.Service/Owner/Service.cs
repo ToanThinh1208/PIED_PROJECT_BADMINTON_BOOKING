@@ -91,7 +91,9 @@ public class Service : IService
             {  
                 CourtId = x.Id,
                 Name = x.Name,  
-                Status = x.Status,  
+                Status = x.Status,
+                StartTime = x.OpenTime,
+                EndTime = x.CloseTime
             });  
         var listResult = await selectedQuery.ToListAsync();  
   
@@ -158,7 +160,7 @@ public class Service : IService
         await _dbContext.SaveChangesAsync();
         return new Response.CreateSubCourtResponse
         {
-            CourtId  = newSubCourt.Id,
+            SubCourtId  = newSubCourt.Id,
             Name = newSubCourt.Name,
         };
     }
