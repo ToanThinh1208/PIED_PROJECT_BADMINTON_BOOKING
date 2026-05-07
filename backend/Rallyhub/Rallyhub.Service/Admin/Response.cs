@@ -75,12 +75,6 @@ public class Response
         public string Name { get; set; } = null!;  
         public string Status { get; set; } = null!;  
     }  
-    public class RejectPendingCourtsResponse  
-    {  
-        public Guid CourtId { get; set; }  
-        public Guid OwnerId { get; set; }  
-        public string Reason { get; set; } = null!;  
-    }
 
     public class RefundResponse
     {

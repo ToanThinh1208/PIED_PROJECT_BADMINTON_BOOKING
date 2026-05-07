@@ -1,4 +1,4 @@
-﻿namespace Rallyhub.Service.Admin;
+namespace Rallyhub.Service.Admin;
 
 public class Request
 {
@@ -36,6 +36,12 @@ public class Request
     public class GetWalletRequest
     {
         public required string Email { get; set; }
+    }
+
+    public class AddBalanceRequest
+    {
+        public required Guid UserId { get; set; }
+        public required decimal Amount { get; set; }
     }
 
     public class FilterUserRequest

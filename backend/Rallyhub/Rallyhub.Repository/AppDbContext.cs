@@ -1,4 +1,4 @@
-﻿    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore;
     using Rallyhub.Repository.Entity;
     using Exception = Rallyhub.Repository.Entity.Exception;
 
@@ -74,6 +74,7 @@
         public DbSet<Transaction>  Transactions { get; set; }
         public DbSet<User>  Users { get; set; }
         public DbSet<Wallet>  Wallets { get; set; }
+        public DbSet<Withdrawal> Withdrawals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -828,26 +829,20 @@
                     .IsRequired()
                     .HasColumnType("decimal(18,2)");
                 builder.Property(x => x.SePayId)
-                    .IsRequired()
                     .HasMaxLength(50);
                 builder.HasIndex(x => x.SePayId).IsUnique();
                 builder.Property(x => x.BankRefCode)
-                    .IsRequired()
                     .HasMaxLength(50);
                 builder.HasIndex(x => x.BankRefCode).IsUnique();
                 builder.Property(x => x.BankAccountNumber)
-                    .IsRequired()
                     .HasMaxLength(500);
                 builder.Property(x => x.TransferContent)
-                    .IsRequired()
                     .HasMaxLength(500);
                 builder.Property(x => x.ActionCode)
-                    .IsRequired()
                     .HasMaxLength(50);
                 builder.HasIndex(x => x.ActionCode).IsUnique();
                 
                 builder.Property(x => x.Signature)
-                    .IsRequired()
                     .HasMaxLength(50);
                 builder.Property(x => x.Status)
                     .IsRequired()
@@ -855,7 +850,7 @@
                 builder.HasOne(x => x.Booking)
                     .WithMany(x => x.Transactions)
                     .HasForeignKey(x => x.BookingId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.SetNull);
                 builder.HasOne(x => x.Wallet)
                     .WithMany(x => x.Transactions)
                     .HasForeignKey(x => x.WalletId)
@@ -875,16 +870,15 @@
             {
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.BankName)
-                    .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(250);
                 builder.Property(x => x.BankAccount)
-                    .IsRequired()
                     .HasMaxLength(100);
                 builder.Property(x => x.Balance)
                     .IsRequired()
                     .HasColumnType("decimal(18,2)")
                     .HasDefaultValue(0);
-                builder.Property(x => x.Version);
+                builder.Property(x => x.Version)
+                    .IsConcurrencyToken();
                 builder.HasOne(x => x.User)
                     .WithOne(x => x.Wallet)
                     .HasForeignKey<Wallet> (x => x.UserId)
@@ -898,6 +892,46 @@
                     new() { Id = WalletId4, BankName = "VPBank",      BankAccount = "5678901234", Balance = 3_500_000,  Version = 0, UserId = UserId5},
                 };
                 builder.HasData(wallets);
+            });
+            
+            modelBuilder.Entity<Withdrawal>(builder =>
+            {
+                builder.HasKey(x => x.Id);
+                builder.Property(x => x.Amount)
+                    .IsRequired()
+                    .HasColumnType("decimal(18,2)");
+                builder.Property(x => x.BankName)
+                    .IsRequired()
+                    .HasMaxLength(250);
+                builder.Property(x => x.BankAccountNumber)
+                    .IsRequired()
+                    .HasMaxLength(100);
+                builder.Property(x => x.BankAccountName)
+                    .IsRequired()
+                    .HasMaxLength(250);
+                builder.Property(x => x.Status)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasDefaultValue("Pending");
+                builder.Property(x => x.RejectionReason)
+                    .HasMaxLength(500);
+                builder.Property(x => x.AdminNote)
+                    .HasMaxLength(500);
+                
+                builder.HasOne(x => x.Wallet)
+                    .WithMany(x => x.Withdrawals)
+                    .HasForeignKey(x => x.WalletId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                    
+                builder.HasOne(x => x.ProcessedByAdmin)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProcessedByAdminId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                    
+                builder.HasOne(x => x.Transaction)
+                    .WithMany()
+                    .HasForeignKey(x => x.TransactionId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

@@ -1,16 +1,20 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Search, List, Map as MapIcon, Loader2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { useCourts } from "../hooks/useCourts";
 import { CourtCard } from "../components/CourtCard";
 import { CourtFilters } from "../components/CourtFilters";
 import { CourtDetailDialog } from "../components/CourtDetailDialog";
+import { CourtMap } from "../components/CourtMap";
 import { cn } from "@/lib/utils";
 import { useCourtSearch } from "../hooks/useCourtSearch";
 
 export function CourtSearchPage() {
-  const [selectedDistrict, setSelectedDistrict] = useState("Tất cả");
-  const { searchQuery, setSearchQuery, debouncedSearch } = useCourtSearch();
+  const { 
+    searchQuery, 
+    setSearchQuery, 
+    debouncedSearch,
+  } = useCourtSearch();
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   
   // Detail Dialog State
@@ -20,16 +24,15 @@ export function CourtSearchPage() {
 
   const filters = useMemo(() => ({
     search: debouncedSearch,
-    district: selectedDistrict,
-  }), [debouncedSearch, selectedDistrict]);
+  }), [debouncedSearch]);
 
   const { data: response, isLoading, isError } = useCourts(filters);
   const courts = response?.items || [];
 
-  const handleCardClick = (id: string) => {
+  const handleCardClick = useCallback((id: string) => {
     setSelectedCourtId(id);
     setIsDialogOpen(true);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F9FBFA] pb-20 pt-20">
@@ -41,27 +44,29 @@ export function CourtSearchPage() {
       />
 
       {/* Header & Filters Section */}
-      <div className="bg-transparent pt-8 pb-4">
-        <CourtFilters 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedDistrict={selectedDistrict}
-          setSelectedDistrict={setSelectedDistrict}
-        />
-      </div>
+      {viewMode === "list" && (
+        <div className="bg-transparent pt-8 pb-4">
+          <CourtFilters 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+        </div>
+      )}
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-6">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <Loader2 size={12} className="animate-spin" /> ĐANG TÌM KIẾM...
-              </span>
-            ) : (
-              <>TÌM THẤY <span className="text-[#0B2421] font-black">{courts.length}</span> SÂN</>
-            )}
-          </p>
+      <div className={cn("max-w-6xl mx-auto px-4 sm:px-6", viewMode === "list" ? "mt-6" : "mt-8")}>
+        <div className={cn("flex items-center mb-6", viewMode === "list" ? "justify-between" : "justify-end")}>
+          {viewMode === "list" && (
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={12} className="animate-spin" /> ĐANG TÌM KIẾM...
+                </span>
+              ) : (
+                <>TÌM THẤY <span className="text-[#0B2421] font-black">{courts.length}</span> SÂN</>
+              )}
+            </p>
+          )}
 
           <div className="flex bg-white border border-gray-100 p-1 rounded-xl shadow-sm">
             <Button 
@@ -121,11 +126,11 @@ export function CourtSearchPage() {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-[2.5rem] h-[60vh] flex items-center justify-center border border-gray-100 shadow-sm">
-            <div className="text-center">
-              <MapIcon size={48} className="mx-auto text-emerald-200 mb-4" />
-              <p className="text-gray-400 font-bold">Chức năng bản đồ đang được phát triển...</p>
-            </div>
+          <div className="h-[70vh] w-full">
+            <CourtMap 
+              onMarkerClick={handleCardClick} 
+              searchQuery={debouncedSearch}
+            />
           </div>
         )}
       </div>

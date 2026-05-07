@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Rallyhub.Repository;
 using System.Text.Json;
+using System.Globalization;
 using StatusCourt = Rallyhub.Service.Enum.Enum.StatusCreateCourt;
 namespace Rallyhub.Service.MapService;
 
@@ -100,11 +101,13 @@ public class Service : IService
     private async Task<List<double>> GetDistanceFromMatrix(
         decimal userLat, decimal userLon, List<Response.CourtMapItem> courts)
     {
+        //Thịnh fixbug lỗi dấu câu
         var client = _httpClientFactory.CreateClient("VietMap");
         var url = $"{_mapOptions.BaseUrl}/matrix?api-version=1.1&apikey={_mapOptions.ApiKey}"
-                        + $"&point={userLat},{userLon}";
+                        + $"&point={userLat.ToString(CultureInfo.InvariantCulture)},{userLon.ToString(CultureInfo.InvariantCulture)}";
         foreach (var court in courts)
-            url += $"&point={court.Latitude},{court.Longitude}";
+            //Thịnh fixbug lỗi dấu câu
+            url += $"&point={court.Latitude.ToString(CultureInfo.InvariantCulture)},{court.Longitude.ToString(CultureInfo.InvariantCulture)}";
         url += "&sources=0";
         url += "&annotation=distance";
         url += $"&destinations={string.Join(";", Enumerable.Range(1, courts.Count))}";
@@ -112,12 +115,39 @@ public class Service : IService
         if (!response.IsSuccessStatusCode)
             return Enumerable.Repeat(double.MaxValue, courts.Count).ToList();
         var json = await response.Content.ReadAsStringAsync();
+        //Console.WriteLine(json);
         using var doc = JsonDocument.Parse(json);
-        var distancesArray = doc.RootElement.GetProperty("distance")[0];
+        //Thịnh fixbug lỗi dấu câu
+        if (!doc.RootElement.TryGetProperty("distances", out var distancesProp) || 
+            distancesProp.ValueKind != JsonValueKind.Array || 
+            distancesProp.GetArrayLength() == 0)
+        {
+            return Enumerable.Repeat(double.MaxValue, courts.Count).ToList();
+        }
+
+        var distancesArray = distancesProp[0];
+        if (distancesArray.ValueKind != JsonValueKind.Array)
+        {
+            return Enumerable.Repeat(double.MaxValue, courts.Count).ToList();
+        }
+
         var result = new List<double>();
+     
         foreach (var item in distancesArray.EnumerateArray())
-            result.Add(item.GetDouble());
+        { 
+            //Thịnh fixbug lỗi dấu câu
+            if (item.ValueKind == JsonValueKind.Number)
+                result.Add(item.GetDouble());
+            else
+                result.Add(double.MaxValue);
+        }
         
+        // Ensure the result has the same count as courts to avoid IndexOutOfRangeException in SearchByRadius
+        while (result.Count < courts.Count)
+        {
+            result.Add(double.MaxValue);
+        }
+        //Thịnh fixbug lỗi dấu câu
         return result;
     }
 
