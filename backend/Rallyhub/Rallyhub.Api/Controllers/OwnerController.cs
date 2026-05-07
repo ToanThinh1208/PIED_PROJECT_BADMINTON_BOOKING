@@ -26,10 +26,10 @@ public class OwnerController : ControllerBase
             , HttpContext.TraceIdentifier));  
     }  
   
-    [HttpGet("GetPendingCourts")]  
+    [HttpGet("GetAllCourts")]  
     public async Task<IActionResult> GetAllCourts([FromQuery] Request.GetMyCourtsRequest request)  
     {  
-        var result = await _ownerService.GetPendingCourts(request);  
+        var result = await _ownerService.GetAllMyCourts(request);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Xem danh sách các sân đã đăng kí thành công"   
             , HttpContext.TraceIdentifier));  
     }   

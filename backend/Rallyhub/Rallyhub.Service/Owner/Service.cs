@@ -28,7 +28,7 @@ public class Service : IService
         var ownerIdGuid = Guid.Parse(ownerIdClaim);  
         if (string.IsNullOrEmpty(request.Name))  
         {            
-            throw new Exception("Tân sân không được bỏ trống");  
+            throw new Exception("Tên sân không được bỏ trống");  
         }  
         if (request.OpenTime >= request.CloseTime)  
         {            
@@ -72,7 +72,7 @@ public class Service : IService
             Status = court.Status,  
         };  
     }  
-    public async Task<Base.Response.PageResult<Response.GetMyCourtsResponse>> GetPendingCourts(Request.GetMyCourtsRequest request)  
+    public async Task<Base.Response.PageResult<Response.GetMyCourtsResponse>> GetAllMyCourts(Request.GetMyCourtsRequest request)  
     {        
         if (request.PageIndex <= 0)  
         {            
