@@ -195,7 +195,14 @@ public class Service : IService
 
             if (court.Status != nameof(StatusCourt.Active))
             {
-                throw new Exception("Sân không tồn tại trong hệ thống");
+                throw new Exception("Sân không tồn tại");
+            }
+            
+            var hasSubCourt = await _dbContext.SubCourts
+                .AnyAsync(x => x.CourtId == request.CourtId);
+            if (!hasSubCourt)
+            {
+                throw new Exception($"Sân {request.Name} không tồn tại sân con");
             }
         }
         
@@ -215,13 +222,6 @@ public class Service : IService
             query = query.Where(x => 
                 x.Name.Trim().ToLower() 
                     .Contains(request.Name.Trim().ToLower()));
-        }
-
-        var hasSubCourt = await _dbContext.SubCourts
-            .AnyAsync(x => x.CourtId == request.CourtId);
-        if (!hasSubCourt)
-        {
-            throw new Exception($"Sân{request.Name}không tồn tại sân con");
         }
         
         var totalItems = await query.CountAsync();

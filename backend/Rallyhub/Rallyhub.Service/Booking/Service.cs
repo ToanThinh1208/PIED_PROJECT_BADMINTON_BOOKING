@@ -96,7 +96,7 @@ public class Service: IService
         return result.OrderBy(x => x.StartTime).ToList();
     }
      
-    public async Task<Response.HoldBookingResponse> HoodBooking(Request.HoldBookingRequest request)
+    public async Task<Response.CreateBookingResponse> CreateBooking(Request.HoldBookingRequest request)
     {
         var customerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
         if (customerIdClaim == null)
@@ -157,7 +157,7 @@ public class Service: IService
             TotalPrice = totalPrice,
             FinalPrice = totalPrice,
             Status = "Pending",
-            ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(5),
+            ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(30),
             CampaignId = null
         };
         
@@ -178,46 +178,7 @@ public class Service: IService
         await _dbContext.Bookings.AddAsync(booking);
         await _dbContext.BookingDetails.AddRangeAsync(bookingDetails);
         await _dbContext.SaveChangesAsync();
-
-        return new Response.HoldBookingResponse
-        {
-            BookingId = booking.Id,
-            TotalPrice = booking.TotalPrice,
-            ExpiredAt = booking.ExpiresAt,
-        };
-    }
-
-    public async Task<Response.GetBookingResponse> GetBookingById(Guid bookingId)
-    {
-        var customerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
-        if (customerIdClaim == null)
-        {
-            throw new Exception("Không tìm thấy thông tin của customer");
-        }
-        var  customerId = Guid.Parse(customerIdClaim);
         
-        var booking = await _dbContext.Bookings
-            .Include(x => x.BookingDetails)
-            .FirstOrDefaultAsync(x => x.Id == bookingId);
-        if (booking == null)
-        {
-            throw new Exception($"Booking {bookingId} không tồn tại");
-        }
-
-        if (booking.CustomerId != customerId)
-        {
-            throw new Exception("Bạn không có quyền xem booking này");
-        }
-
-        if (booking.Status == "Cancelled")
-        {
-            throw new Exception("Booking này đã hết hạn hoặc bị hủy");
-        }
-        if (booking.Status == "Banked")
-        {
-            throw new Exception("Booking này đã được thanh toán");
-        }
-
         string description = $"RALLYHUB-{booking.Id}";
         string qrCodeUrl = $"https://qr.sepay.vn/img?" +
                            $"acc=0963518963&" +
@@ -225,7 +186,8 @@ public class Service: IService
                            $"amount={(int)booking.FinalPrice}&" +
                            $"des={description}&" +
                            $"template=qronly";
-        return new Response.GetBookingResponse
+        
+        return new Response.CreateBookingResponse
         {
             BookingId = booking.Id,
             TotalPrice = booking.TotalPrice,

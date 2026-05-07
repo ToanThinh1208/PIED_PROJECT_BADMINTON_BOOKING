@@ -5,7 +5,6 @@ using Rallyhub.Repository;
 
 namespace Rallyhub.Service.BackgroundJobService;
 
-[DisallowConcurrentExecution]
 public class BookingTimeoutJob  : IJob
 {
     private const string PendingStatus = "Pending";

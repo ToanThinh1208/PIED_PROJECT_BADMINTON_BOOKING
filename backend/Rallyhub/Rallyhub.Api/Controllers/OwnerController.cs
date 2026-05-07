@@ -8,7 +8,7 @@ namespace Rallyhub.Api.Controllers;
 
 [ApiController]
 [Authorize(Policy = JwtExtensions.OwnerPolicy)]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class OwnerController : ControllerBase
 {
     private readonly IService _ownerService;
@@ -18,7 +18,7 @@ public class OwnerController : ControllerBase
         _ownerService = ownerService;
     }
     
-    [HttpPost("CreateCourt")]  
+    [HttpPost("OwnerCreateCourt")]  
     public async Task<IActionResult> CreateCourt(Request.CreateCourtRequest request)  
     {  
         var result = await _ownerService.CreateCourt(request);  
@@ -26,7 +26,7 @@ public class OwnerController : ControllerBase
             , HttpContext.TraceIdentifier));  
     }  
   
-    [HttpGet("GetAllCourts")]  
+    [HttpGet("OwnerGetAllCourts")]  
     public async Task<IActionResult> GetAllCourts([FromQuery] Request.GetMyCourtsRequest request)  
     {  
         var result = await _ownerService.GetAllMyCourts(request);  
@@ -34,7 +34,7 @@ public class OwnerController : ControllerBase
             , HttpContext.TraceIdentifier));  
     }   
     
-    [HttpPost("CreateSubCourt")]  
+    [HttpPost("OwnerCreateSubCourt")]  
     public async Task<IActionResult> CreateSubCourt(Request.CreateSubCourtRequest request)  
     {  
         var result = await _ownerService.CreateSubCourt(request);  
@@ -42,7 +42,7 @@ public class OwnerController : ControllerBase
             , HttpContext.TraceIdentifier));  
     } 
     
-    [HttpGet("GetMySubCourts")] 
+    [HttpGet("OwnerGetMySubCourts")] 
     public async Task<IActionResult> GetMySubCourts([FromQuery] Request.GetMySubCourtsRequest request)  
     {  
         var result = await _ownerService.GetMySubCourts(request);  
@@ -50,7 +50,7 @@ public class OwnerController : ControllerBase
             , HttpContext.TraceIdentifier));  
     } 
     
-    [HttpPost("CreateConfigSlot")]  
+    [HttpPost("OwnerCreateConfigSlot")]  
     public async Task<IActionResult> CreateConfigSlot([FromBody] Request.CreateConfigSlotRequest request)  
     {  
         var result = await _ownerService.CreateConfigSlot(request); 

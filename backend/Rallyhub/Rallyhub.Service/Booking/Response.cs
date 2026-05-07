@@ -10,12 +10,6 @@ public class Response
         public decimal Price { get; set; }
         public bool IsAvailable { get; set; }
     }
-    public class HoldBookingResponse
-    {
-        public Guid BookingId {get; set;}
-        public decimal TotalPrice { get; set; }
-        public DateTimeOffset ExpiredAt { get; set; }
-    }
 
     public class BookingDetailItem
     {
@@ -24,7 +18,7 @@ public class Response
         public decimal Price { get; set; }
     }
 
-    public class GetBookingResponse
+    public class CreateBookingResponse
     {
         public Guid BookingId {get; set;}
         public decimal TotalPrice {get; set;}
