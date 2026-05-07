@@ -334,7 +334,7 @@ public class Service : IService
     public async Task<Response.CreateOverrideSlotResponse> CreateOverrideSlot(Request.CreateOverrideSlotRequest request)
     {
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
-        if (ownerIdClaim == null)  
+        if (ownerIdClaim == null) 
         {            
             throw new Exception("Owner không tồn tại");  
         }        
@@ -375,7 +375,7 @@ public class Service : IService
         {
             throw new Exception("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc");
         }
-        //Validate overlap với override 
+         
         var isOverlap = await _dbContext.OverideSlots.AnyAsync(x =>
             x.SubCourtDetailId == request.SubCourtId &&
             (
@@ -394,20 +394,16 @@ public class Service : IService
             .OrderBy(x => x.StartTime)
             .ToListAsync();
         
-        if (!configSlots.Any())
-        {
-            throw new Exception("SubCourt chưa có ConfigSlot");
-        }
-        
         var validStart = configSlots.Any(x => x.StartTime == request.StartTime);
         var validEnd   = configSlots.Any(x => x.EndTime == request.EndTime);
 
         if (!validStart || !validEnd)
-            throw new Exception("Override phải align với ConfigSlot");
+            throw new Exception("Override match với ConfigSlot");
 
         var coveredSlots = configSlots
-            .Where(x => x.StartTime >= request.StartTime &&
-                        x.EndTime <= request.EndTime)
+            .Where(x => 
+                x.StartTime >= request.StartTime &&
+                x.EndTime <= request.EndTime)
             .ToList();
 
         var expected = (request.EndTime - request.StartTime).TotalMinutes;
@@ -428,7 +424,6 @@ public class Service : IService
             Price = request.Price,
         };
         
-        //
         _dbContext.Add(overrideSlot);
         await _dbContext.SaveChangesAsync();
         return new Response.CreateOverrideSlotResponse
