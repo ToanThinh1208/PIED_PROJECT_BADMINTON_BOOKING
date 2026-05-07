@@ -17,6 +17,9 @@ import { AdminDashboard, OwnerDashboard } from "@/features/dashboard";
 import { CourtSearchPage } from "@/features/courts";
 import { BookingHistoryPage } from "@/features/bookings";
 import { OwnerRequestsPage } from "@/features/admin-owner-requests";
+import OwnerLayout from "@/shared/layouts/OwnerLayout";
+import OwnerCourtsPage from "@/features/owner-courts/pages/OwnerCourtsPage";
+import AdminCourtsPage from "@/features/admin-courts/pages/AdminCourtsPage";
 
 /**
  * React Router v6 config – createBrowserRouter (Data API).
@@ -102,17 +105,21 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "owner-requests", element: <OwnerRequestsPage /> },
+      { path: "court-approvals", element: <AdminCourtsPage /> },
     ],
   },
 
-  // ─── Owner layout (Protected, admin only) ───────────
+  // ─── Owner layout (Protected, owner only) ────────────
   {
     path: "owner",
     element: (
       <ProtectedRoute allowedRoles={["Owner"]}>
-        <AdminLayout />
+        <OwnerLayout />
       </ProtectedRoute>
     ),
-    children: [{ index: true, element: <OwnerDashboard /> }],
+    children: [
+      { index: true, element: <OwnerDashboard /> },
+      { path: "courts", element: <OwnerCourtsPage /> },
+    ],
   },
 ]);

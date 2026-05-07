@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using Quartz;
 using Rallyhub.Api.Extention;
 using Rallyhub.Api.Middleware;
@@ -26,6 +27,10 @@ using WithdrawalService = Rallyhub.Service.Withdrawal;
 // using DiscordService = Rallyhub.Service.DiscordService;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Set default culture to InvariantCulture (dot as decimal separator)
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 // Add services to the container.
 

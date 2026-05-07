@@ -27,7 +27,7 @@ public class OwnerController : ControllerBase
     }  
   
     [HttpGet("OwnerGetAllCourts")]  
-    public async Task<IActionResult> GetAllCourts([FromQuery] Request.GetMyCourtsRequest request)  
+    public async Task<IActionResult> GetAllCourts([FromQuery]Request.GetAllMyCourtsRequest request)  
     {  
         var result = await _ownerService.GetAllMyCourts(request);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Xem danh sách các sân đã đăng kí thành công"   
@@ -50,15 +50,15 @@ public class OwnerController : ControllerBase
             , HttpContext.TraceIdentifier));  
     } 
     
-    [HttpPost("OwnerCreateConfigSlot")]  
-    public async Task<IActionResult> CreateConfigSlot([FromBody] Request.CreateConfigSlotRequest request)  
-    {  
-        var result = await _ownerService.CreateConfigSlot(request); 
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Cấu hình các slot thành công"   
-            , HttpContext.TraceIdentifier));  
-    } 
+    // [HttpPost("OwnerCreateConfigSlot")]  
+    // public async Task<IActionResult> CreateConfigSlot([FromBody] Request.CreateConfigSlotRequest request)  
+    // {  
+    //     var result = await _ownerService.CreateConfigSlot(request); 
+    //     return Ok(ApiResponseFactory.SuccessResponse( result,"Cấu hình các slot thành công"   
+    //         , HttpContext.TraceIdentifier));  
+    // } 
     
-    [HttpGet("GetConfigSlotBySubCourtId")]  
+    [HttpGet("OwnerGetConfigSlot")]  
     public async Task<IActionResult> GetConfigSlotBySubCourtId(Guid subCourtId)  
     {  
         var result = await _ownerService.GetConfigSlotBySubCourtId(subCourtId); 
