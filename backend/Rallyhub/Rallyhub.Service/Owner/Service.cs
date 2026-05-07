@@ -225,7 +225,7 @@ public class Service : IService
             PageSize = request.PageSize,
         };
     }
-
+    //comment đừng xóa
     /*public async Task<Response.CreateConfigSlotResponse> CreateConfigSlot(Request.CreateConfigSlotRequest request)
     {
         //Lấy token của OwnerId
@@ -297,20 +297,18 @@ public class Service : IService
             Price = newConfigSlot.Price,
         };
     }*/
-
-    public async Task<List<Response.GetConfigSlotResponse>> GetConfigSlotBySubCourtId(Guid subCourtId)
+    public async Task<List<Response.GetConfigSlotResponse>> GetConfigSlot(Request.GetConfigSlotRequest request)
     {
-        //Lấy token của OwnerId
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
-        if (string.IsNullOrEmpty(ownerIdClaim))  
+        if (ownerIdClaim == null)  
         {            
             throw new Exception("Owner không tồn tại");  
         }        
         var ownerIdGuid = Guid.Parse(ownerIdClaim);
-        //check subCourt + ownerShip
+
         var existSubCourt = _dbContext.SubCourts
             .Include(x => x.Court)
-            .FirstOrDefault(x => x.Id == subCourtId);
+            .FirstOrDefault(x => x.Id == request.SubCourtId);   
         if (existSubCourt == null)
         {
             throw new Exception("Sân con không tồn tại");
@@ -321,9 +319,8 @@ public class Service : IService
             throw new Exception("Bạn không có quyền");
         }
         
-        //get ConfigSlot
         var slots = await _dbContext.ConfigSlots
-            .Where(x => x.SubCourtDetailId == subCourtId)
+            .Where(x => x.SubCourtDetailId == request.SubCourtId)
             .OrderBy(x => x.StartTime)
             .Select(x => new Response.GetConfigSlotResponse()
             {

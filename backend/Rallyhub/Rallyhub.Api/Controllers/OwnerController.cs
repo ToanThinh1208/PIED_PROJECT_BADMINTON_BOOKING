@@ -58,10 +58,10 @@ public class OwnerController : ControllerBase
     //         , HttpContext.TraceIdentifier));  
     // } 
     
-    [HttpGet("OwnerGetConfigSlotBySubCourtId")]  
-    public async Task<IActionResult> GetConfigSlotBySubCourtId(Guid subCourtId)  
+    [HttpGet("OwnerGetConfigSlot")]  
+    public async Task<IActionResult> GetConfigSlot(Request.GetConfigSlotRequest request)  
     {  
-        var result = await _ownerService.GetConfigSlotBySubCourtId(subCourtId); 
+        var result = await _ownerService.GetConfigSlot(request); 
         return Ok(ApiResponseFactory.SuccessResponse( result,"Lấy thành công danh sách các slots"   
             , HttpContext.TraceIdentifier));  
     }

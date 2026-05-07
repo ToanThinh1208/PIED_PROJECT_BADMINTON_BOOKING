@@ -35,6 +35,11 @@ public class Request
         public string? Name { get; set; }  
     }
 
+    public class GetConfigSlotRequest : Base.Request.PagingRequest
+    {
+        public Guid SubCourtId { get; set; }
+    }
+
     // public class CreateConfigSlotRequest
     // {
     //     public Guid SubCourtId { get; set; }
