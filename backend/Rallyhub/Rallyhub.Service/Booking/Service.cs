@@ -98,6 +98,7 @@ public class Service: IService
      
     public async Task<Response.CreateBookingResponse> CreateBooking(Request.HoldBookingRequest request)
     {
+        //thêm campaign
         var customerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
         if (customerIdClaim == null)
         {
@@ -129,7 +130,7 @@ public class Service: IService
         }
         
         var dateTime = new DateTimeOffset(request.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
-        var bookedSlots = await  _dbContext.BookingDetails
+        var bookedSlots = await _dbContext.BookingDetails
             .Where(x =>
                 x.SubCourtId == request.SubCourtId &&
                 x.Date.Date == dateTime.Date &&
@@ -178,12 +179,15 @@ public class Service: IService
         await _dbContext.Bookings.AddAsync(booking);
         await _dbContext.BookingDetails.AddRangeAsync(bookingDetails);
         await _dbContext.SaveChangesAsync();
+
+        string bankName = "MBBank";
+        string bankAccount = "VQRQAIUZK3222";
+        string description = $"RALLYHUB-{booking.Id:N}";
         
-        string description = $"RALLYHUB-{booking.Id}";
         string qrCodeUrl = $"https://qr.sepay.vn/img?" +
-                           $"acc=0963518963&" +
-                           $"bank=MBBank&" +
-                           $"amount={(int)booking.FinalPrice}&" +
+                           $"acc={bankAccount}&" +
+                           $"bank={bankName}&" +
+                           $"amount={booking.FinalPrice}&" +
                            $"des={description}&" +
                            $"template=qronly";
         
@@ -201,5 +205,73 @@ public class Service: IService
             }).ToList(),
             QrCodeUrl = qrCodeUrl
         };
+    }
+    
+    public async Task SepayWebhookHandler(Request.SepayWebhookRequest request)
+    {
+        var description = request.Code;
+        
+        var raw = description.Replace("RALLYHUB", ""); // TETPEEORDERID -> ORDERID
+        
+        Guid? bookingId = null;
+        
+        if (raw.Length == 32) 
+        {
+            var formatted = 
+                            $"{raw.Substring(0, 8)}-" +
+                            $"{raw.Substring(8, 4)}-" +
+                            $"{raw.Substring(12, 4)}-" +
+                            $"{raw.Substring(16, 4)}-" +
+                            $"{raw.Substring(20, 12)}";
+            if (Guid.TryParse(formatted, out var guid))
+            {
+                bookingId = guid;
+            }
+        } else {
+            throw new Exception("Invalid description format");
+        }
+        
+        if(bookingId == null)
+        {
+            throw new Exception("BookingId not found in description");
+        }
+        
+        var query = _dbContext.Bookings
+            .Where(x => x.Id == bookingId)
+            .Include(x => x.BookingDetails);
+        
+        var booking = await query.FirstOrDefaultAsync();
+        if(booking == null)
+        {
+            throw new Exception("Order not found");
+        }
+        
+        if(booking.Status != "Pending") // Đơn hàng đã xử lí rồi mà
+        {
+            throw new Exception("Order already processed");
+        }
+        
+        if(booking.FinalPrice != request.TransferAmount)
+        {
+            throw new Exception("Invalid transfer amount");
+        }
+        
+        // booking.Status = "Banked";
+        // _dbContext.Update(booking);
+        // await _dbContext.SaveChangesAsync();
+        //
+        // var productIds = booking.BookingDetails.Select(x => x.ProductId).ToList();
+        //
+        // // Tìm những sản phẩm chưa trong Cart với các id sau productIds của UserId
+        // var queryProdCart = _dbContext.CartDetails.Where(x =>
+        //     x.Cart.UserId == order.UserId &&
+        //     productIds.Contains(x.ProductId)
+        // );
+        //
+        // var removeCartDetails = await queryProdCart.ToListAsync();
+        //
+        // _dbContext.RemoveRange(removeCartDetails);
+        //
+        // await _dbContext.SaveChangesAsync();
     }
 }
