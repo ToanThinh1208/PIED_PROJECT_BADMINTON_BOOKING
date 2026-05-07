@@ -15,26 +15,18 @@ public class BookingController: ControllerBase
         _bookingService = bookingService;
     }
     
-    [HttpGet("GetAvailableSlots")]
+    [HttpGet("CustomerGetAvailableSlots")]
     public async Task<IActionResult> GetAvailableSlots([FromQuery] Request.GetAvailableSlotsRequest request)
     {
         var result = await _bookingService.GetAvailableSlots(request);
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
             , HttpContext.TraceIdentifier));
     }
-    [HttpPost("BookingSlots")]
-    public async Task<IActionResult> BookingSlot([FromBody] Request.HoldBookingRequest request)
+    [HttpPost("CustomerCreateBooking")]
+    public async Task<IActionResult> CreateBooking([FromBody] Request.HoldBookingRequest request)
     {
-        var result = await _bookingService.HoodBooking(request);
+        var result = await _bookingService.CreateBooking(request);
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
             , HttpContext.TraceIdentifier));
-    }
-    
-    [HttpGet("{bookingId}")]
-    public async Task<IActionResult> GetBookingById([FromRoute] Guid bookingId)
-    {
-        var result = await _bookingService.GetBookingById(bookingId);
-        return Ok(ApiResponseFactory.SuccessResponse(result, "Success",
-            HttpContext.TraceIdentifier));
     }
 }

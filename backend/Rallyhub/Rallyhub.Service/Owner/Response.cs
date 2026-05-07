@@ -10,6 +10,7 @@ public class Response
   
     public class GetMyCourtsResponse  
     {  
+        public Guid Id { get; set; }
         public string Name { get; set; } = null!;  
         public string Status { get; set; } = null!;  
     }
