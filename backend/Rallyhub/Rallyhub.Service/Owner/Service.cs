@@ -14,7 +14,8 @@ public class Service : IService
     private readonly MediaService.IService _mediaService;  
   
     public Service(AppDbContext dbContext, IHttpContextAccessor httpContext, MediaService.IService mediaService)  
-    {        _dbContext = dbContext;  
+    {        
+        _dbContext = dbContext;  
         _httpContext = httpContext;  
         _mediaService = mediaService;  
     }  

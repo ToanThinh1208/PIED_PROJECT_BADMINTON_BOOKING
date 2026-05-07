@@ -39,13 +39,13 @@ public class Request
         public int PageSize { get; set; } = 10;  
     }
 
-    public class CreateConfigSlotRequest
-    {
-        public Guid SubCourtId { get; set; }
-        public TimeOnly StartTime { get; set; }
-        public TimeOnly EndTime { get; set; }
-        public decimal Price { get; set; }
-    }
+    // public class CreateConfigSlotRequest
+    // {
+    //     public Guid SubCourtId { get; set; }
+    //     public TimeOnly StartTime { get; set; }
+    //     public TimeOnly EndTime { get; set; }
+    //     public decimal Price { get; set; }
+    // }
     
     public class CreateOverrideSlotRequest
     {

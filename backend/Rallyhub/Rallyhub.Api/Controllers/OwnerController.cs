@@ -58,7 +58,7 @@ public class OwnerController : ControllerBase
     //         , HttpContext.TraceIdentifier));  
     // } 
     
-    [HttpGet("GetConfigSlotBySubCourtId")]  
+    [HttpGet("OwnerGetConfigSlotBySubCourtId")]  
     public async Task<IActionResult> GetConfigSlotBySubCourtId(Guid subCourtId)  
     {  
         var result = await _ownerService.GetConfigSlotBySubCourtId(subCourtId); 
