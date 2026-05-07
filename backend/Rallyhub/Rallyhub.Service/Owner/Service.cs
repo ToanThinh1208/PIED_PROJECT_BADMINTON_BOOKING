@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Rallyhub.Repository;
 using Rallyhub.Repository.Entity;
 using Exception = System.Exception;
-using StatusCreateCourt = Rallyhub.Service.Enum.Enum.StatusCreateCourt;
+using StatusCourt = Rallyhub.Service.Enum.Enum.StatusCreateCourt;
 namespace Rallyhub.Service.Owner;
 
 public class Service : IService
@@ -60,7 +60,7 @@ public class Service : IService
             Longitude = request.Longitude,  
             MapUrl = request.MapUrl,  
             PictureUrl = await _mediaService.UploadImageAsync(request.PictureUrl),  
-            Status = nameof(StatusCreateCourt.Pending),  
+            Status = nameof(StatusCourt.Pending),  
         };  
   
         _dbContext.Add(court);  
@@ -103,6 +103,7 @@ public class Service : IService
         var selectedQuery = query  
             .Select(x => new Response.GetMyCourtsResponse()  
             {  
+                Id = x.Id,
                 Name = x.Name,  
                 Status = x.Status,  
             });  
@@ -129,8 +130,8 @@ public class Service : IService
         }
         var ownerIdGuid = Guid.Parse(ownerIdClaim); 
         //check court tồn tại
-        var court = await _dbContext.Courts.
-            FirstOrDefaultAsync(x => x.Id == request.CourtId);
+        var court = await _dbContext.Courts
+            .FirstOrDefaultAsync(x => x.Id == request.CourtId && x.Status == nameof(StatusCourt.Active));
         if (court == null)
         {
             throw new Exception("Không tìm thấy sân");
@@ -181,9 +182,28 @@ public class Service : IService
             throw new Exception("Owner không tồn tại");  
         }        
         var ownerIdGuid = Guid.Parse(ownerIdClaim);
-        var query =  _dbContext.SubCourts
+        if (request.CourtId.HasValue)
+        {
+            var court = await _dbContext.Courts
+                .FirstOrDefaultAsync(x => 
+                    x.Id == request.CourtId.Value 
+                    && x.OwnerId == ownerIdGuid);
+            if (court == null)
+            {
+                throw new Exception("Sân không tồn tại");
+            }
+
+            if (court.Status != nameof(StatusCourt.Active))
+            {
+                throw new Exception("Sân không tồn tại trong hệ thống");
+            }
+        }
+        
+        var query = _dbContext.SubCourts
             .Include(x => x.Court)
-            .Where(x => x.Court.OwnerId == ownerIdGuid)
+            .Where(x =>
+                x.Court.OwnerId == ownerIdGuid &&
+                x.Court.Status == nameof(StatusCourt.Active))
             .AsQueryable();
         if (request.CourtId.HasValue)
         {
@@ -192,32 +212,36 @@ public class Service : IService
 
         if (!string.IsNullOrEmpty(request.Name))
         {
-            query = query.Where(x => x.Name.Trim().ToLower().Contains(request.Name.Trim().ToLower()));
+            query = query.Where(x => 
+                x.Name.Trim().ToLower() 
+                    .Contains(request.Name.Trim().ToLower()));
+        }
+
+        var hasSubCourt = await _dbContext.SubCourts
+            .AnyAsync(x => x.CourtId == request.CourtId);
+        if (!hasSubCourt)
+        {
+            throw new Exception($"Sân{request.Name}không tồn tại sân con");
         }
         
-        var totalItems = await query.CountAsync();  
-        query = query
-            .Skip((request.PageIndex - 1) * request.PageSize)  
-            .Take(request.PageSize);
-
+        var totalItems = await query.CountAsync();
         var result = await query
             .OrderBy(x => x.Name)
-            .Select(x => new Response.GetMySubCourtsResponse()
+            .Skip((request.PageIndex - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .Select(x => new Response.GetMySubCourtsResponse
             {
                 Id = x.Id,
                 Name = x.Name,
-                CourtId = x.CourtId,
+                CourtId = x.Court.Id,
             }).ToListAsync();
-
-        var finalResult = new Base.Response.PageResult<Response.GetMySubCourtsResponse>
+        return new Base.Response.PageResult<Response.GetMySubCourtsResponse>
         {
             Items = result,
             TotalItems = totalItems,
             PageIndex = request.PageIndex,
             PageSize = request.PageSize,
-            
         };
-        return finalResult;
     }
 
     public async Task<Response.CreateConfigSlotResponse> CreateConfigSlot(Request.CreateConfigSlotRequest request)
