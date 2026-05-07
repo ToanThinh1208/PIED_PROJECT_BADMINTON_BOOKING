@@ -44,25 +44,29 @@ export function CourtSearchPage() {
       />
 
       {/* Header & Filters Section */}
-      <div className="bg-transparent pt-8 pb-4">
-        <CourtFilters 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
-      </div>
+      {viewMode === "list" && (
+        <div className="bg-transparent pt-8 pb-4">
+          <CourtFilters 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+        </div>
+      )}
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-6">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <Loader2 size={12} className="animate-spin" /> ĐANG TÌM KIẾM...
-              </span>
-            ) : (
-              <>TÌM THẤY <span className="text-[#0B2421] font-black">{courts.length}</span> SÂN</>
-            )}
-          </p>
+      <div className={cn("max-w-6xl mx-auto px-4 sm:px-6", viewMode === "list" ? "mt-6" : "mt-8")}>
+        <div className={cn("flex items-center mb-6", viewMode === "list" ? "justify-between" : "justify-end")}>
+          {viewMode === "list" && (
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={12} className="animate-spin" /> ĐANG TÌM KIẾM...
+                </span>
+              ) : (
+                <>TÌM THẤY <span className="text-[#0B2421] font-black">{courts.length}</span> SÂN</>
+              )}
+            </p>
+          )}
 
           <div className="flex bg-white border border-gray-100 p-1 rounded-xl shadow-sm">
             <Button 
