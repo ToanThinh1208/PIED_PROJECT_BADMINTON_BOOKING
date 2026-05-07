@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import vietmapgl from "@vietmap/vietmap-gl-js/dist/vietmap-gl";
-import { useMapSearchByBoundingBox, useMapSearchByText } from './useMapSearch';
-import type { BoundingBoxRequest } from '../types';
+import { useMapSearchByBoundingBox, useMapSearchByText, useMapSearchByRadius } from './useMapSearch';
+import type { BoundingBoxRequest, RadiusRequest } from '../types';
 
 /**
  * API Key cho VietMap được lấy từ biến môi trường
@@ -42,7 +42,14 @@ export function useCourtMap({ mapContainerRef, searchQuery, onMarkerClick }: Use
     !!searchQuery
   );
 
-  const isLoading = isBboxLoading || isTextLoading;
+  // Trạng thái cho API tìm kiếm theo bán kính
+  const [radiusReq, setRadiusReq] = useState<RadiusRequest | null>(null);
+  const { data: radiusData, isLoading: isRadiusLoading, refetch: refetchRadius } = useMapSearchByRadius(
+    radiusReq || { latitude: 0, longitude: 0, radiusKm: 10 },
+    !!radiusReq
+  );
+
+  const isLoading = isBboxLoading || isTextLoading || isRadiusLoading;
 
   // Khi có kết quả tìm kiếm theo văn bản, di chuyển bản đồ đến vị trí sân đầu tiên
   useEffect(() => {
@@ -105,9 +112,18 @@ export function useCourtMap({ mapContainerRef, searchQuery, onMarkerClick }: Use
    * Cập nhật các Markers (ghim) trên bản đồ khi dữ liệu sân thay đổi
    */
   useEffect(() => {
-    if (!mapRef.current || !mapData) return;
+    if (!mapRef.current) return;
 
-    const courts = mapData.listCourts;
+    // Gộp dữ liệu từ API Bbox và API Radius
+    const allCourtsMap = new Map();
+    if (mapData?.listCourts) {
+      mapData.listCourts.forEach(c => allCourtsMap.set(c.id, c));
+    }
+    if (radiusData?.listCourts) {
+      radiusData.listCourts.forEach(c => allCourtsMap.set(c.id, c));
+    }
+
+    const courts = Array.from(allCourtsMap.values());
     const newMarkerIds = new Set(courts.map(c => c.id));
 
     // Xóa những markers cũ không còn nằm trong danh sách kết quả mới (vừa di chuyển khỏi vùng nhìn)
@@ -149,7 +165,7 @@ export function useCourtMap({ mapContainerRef, searchQuery, onMarkerClick }: Use
         markersRef.current[court.id] = marker;
       }
     });
-  }, [mapData, onMarkerClick]);
+  }, [mapData, radiusData, onMarkerClick]);
 
   // Marker cho vị trí người dùng
   const userMarkerRef = useRef<vietmapgl.Marker | null>(null);
@@ -163,10 +179,18 @@ export function useCourtMap({ mapContainerRef, searchQuery, onMarkerClick }: Use
     navigator.geolocation.getCurrentPosition((position) => {
       const { longitude, latitude } = position.coords;
       if (mapRef.current) {
-        // Bay tới vị trí người dùng
+        // Gọi API lấy các sân trong bán kính 10km
+        setRadiusReq({ latitude, longitude, radiusKm: 10 });
+        
+        // React Query sẽ cache data nếu tọa độ không đổi, do đó nếu tọa độ giống cũ ta ép gọi lại API
+        if (radiusReq?.latitude === latitude && radiusReq?.longitude === longitude) {
+          refetchRadius();
+        }
+
+        // Bay tới vị trí người dùng và zoom nhỏ lại để thấy bán kính 10-20km
         mapRef.current.flyTo({
           center: [longitude, latitude],
-          zoom: 15
+          zoom: 12
         });
 
         // Tạo hoặc cập nhật marker vị trí người dùng (màu xanh dương nhấp nháy)
