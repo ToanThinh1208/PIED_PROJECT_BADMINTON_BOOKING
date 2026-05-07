@@ -297,7 +297,7 @@ public class Service : IService
             Price = newConfigSlot.Price,
         };
     }*/
-    public async Task<List<Response.GetConfigSlotResponse>> GetConfigSlot(Request.GetConfigSlotRequest request)
+    public async Task<List<Response.GetConfigSlotResponse>> GetConfigSlotBySubCourtId(Request.GetConfigSlotRequest request)
     {
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
         if (ownerIdClaim == null)  
@@ -331,17 +331,15 @@ public class Service : IService
             }).ToListAsync();
         return slots;
     }
-
     public async Task<Response.CreateOverrideSlotResponse> CreateOverrideSlot(Request.CreateOverrideSlotRequest request)
     {
-        //Lấy token của OwnerId
         var ownerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "OwnerId")?.Value; 
-        if (string.IsNullOrEmpty(ownerIdClaim))  
+        if (ownerIdClaim == null)  
         {            
             throw new Exception("Owner không tồn tại");  
         }        
         var ownerIdGuid = Guid.Parse(ownerIdClaim);
-        //check subCort + Owner
+
         var subCourt = await _dbContext.SubCourts
             .Include(x => x.Court)
             .FirstOrDefaultAsync(x => x.Id == request.SubCourtId);
@@ -349,12 +347,11 @@ public class Service : IService
         {
             throw new Exception("Sân con không tồn tại!");
         }
-
         if (subCourt.Court.OwnerId != ownerIdGuid)
         {
             throw new Exception("Bạn không có quyền");
         }
-        //Validate Date / DateOfWeek
+ 
         if (request.IsRecurring)
         {
             if (request.DayOfWeek == null)
@@ -373,7 +370,7 @@ public class Service : IService
                 throw new Exception("Thiếu Date");
             }
         }
-        //Validate Time
+
         if (request.StartTime >= request.EndTime)
         {
             throw new Exception("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc");
@@ -389,10 +386,9 @@ public class Service : IService
         );
         if (isOverlap)
         {
-            throw new Exception("Override bị trùng thời ");
+            throw new Exception("Override bị trùng thời gian ");
         }
         
-        //Validate align voiws ConfigSlot
         var configSlots = await  _dbContext.ConfigSlots
             .Where(x => x.SubCourtDetailId == request.SubCourtId)
             .OrderBy(x => x.StartTime)
