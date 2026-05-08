@@ -8,7 +8,6 @@ import {
   Loader2, 
   Lock,
   CalendarCheck,
-  Ban,
   MessageSquare
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";

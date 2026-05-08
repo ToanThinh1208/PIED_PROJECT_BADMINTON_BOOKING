@@ -30,8 +30,6 @@ import {
 import { 
   Dialog, 
   DialogContent, 
-  DialogHeader, 
-  DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Separator } from "@/shared/components/ui/separator";
 import { Badge } from "@/shared/components/ui/badge";
@@ -168,8 +166,8 @@ export default function AdminUsersPage() {
             </TableHeader>
             <TableBody>
               {data.items.map((user) => {
-                const roleInfo = getRoleLabel(user.role);
-                const statusInfo = getStatusLabel(user.status);
+                const roleInfo = getRoleLabel(Number(user.role));
+                const statusInfo = getStatusLabel(Number(user.status));
                 
                 return (
                   <TableRow key={user.id} className="hover:bg-gray-50/50 transition-colors">
@@ -219,12 +217,12 @@ export default function AdminUsersPage() {
                           <DropdownMenuItem 
                             className={cn(
                               "flex items-center gap-2 cursor-pointer py-2",
-                              user.status === 0 ? "text-red-600 focus:text-red-600" : "text-emerald-600 focus:text-emerald-600"
+                              Number(user.status) === 0 ? "text-red-600 focus:text-red-600" : "text-emerald-600 focus:text-emerald-600"
                             )}
-                            onClick={() => handleToggleStatus(user.id, user.status)}
+                            onClick={() => handleToggleStatus(user.id, Number(user.status))}
                             disabled={banUnbanMutation.isPending}
                           >
-                            {user.status === 0 ? (
+                            {Number(user.status) === 0 ? (
                               <><Ban size={16} /> <span>Khóa tài khoản</span></>
                             ) : (
                               <><Unlock size={16} /> <span>Mở khóa tài khoản</span></>
@@ -292,8 +290,8 @@ export default function AdminUsersPage() {
               <div className="flex items-center justify-between mb-1">
                 <h2 className="text-2xl font-black text-gray-900">{userDetail?.firstName} {userDetail?.lastName}</h2>
                 {userDetail && (
-                  <Badge className={cn("border-none pointer-events-none shadow-none", getStatusLabel(userDetail.status).class)}>
-                    {getStatusLabel(userDetail.status).label}
+                  <Badge className={cn("border-none pointer-events-none shadow-none", getStatusLabel(Number(userDetail.status)).class)}>
+                    {getStatusLabel(Number(userDetail.status)).label}
                   </Badge>
                 )}
               </div>
@@ -310,8 +308,8 @@ export default function AdminUsersPage() {
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Vai trò</p>
                 {userDetail && (
-                  <Badge className={cn("border-none mt-1 pointer-events-none shadow-none", getRoleLabel(userDetail.role).class)}>
-                    {getRoleLabel(userDetail.role).label}
+                  <Badge className={cn("border-none mt-1 pointer-events-none shadow-none", getRoleLabel(Number(userDetail.role)).class)}>
+                    {getRoleLabel(Number(userDetail.role)).label}
                   </Badge>
                 )}
               </div>

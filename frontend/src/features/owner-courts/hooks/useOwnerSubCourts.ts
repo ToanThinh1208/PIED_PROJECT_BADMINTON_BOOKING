@@ -21,7 +21,7 @@ export const useCreateSubCourt = () => {
 export const useOwnerSubCourts = (params: GetMySubCourtsRequest) => {
   return useQuery({
     queryKey: ["owner-sub-courts", params],
-    queryFn: () => ownerCourtService.getSubCourts(params),
+    queryFn: () => ownerCourtService.getSubCourts(params as { courtId: string; pageIndex: number; pageSize: number; name?: string }),
     enabled: !!params.courtId,
   });
 };

@@ -10,7 +10,7 @@ export const adminCourtService = {
         PageSize: params.pageSize,
         Name: params.name,
       },
-    });
+    }) as unknown as Promise<PaginatedResponse<PendingCourt>>;
   },
 
   approveCourt: async (courtId: string) => {
