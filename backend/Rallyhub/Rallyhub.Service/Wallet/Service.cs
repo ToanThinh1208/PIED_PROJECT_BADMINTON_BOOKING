@@ -192,4 +192,11 @@ public class Service : IService
         }
         return false;
     }
+
+    public async Task<string> AdminUpBalanceForUser(Guid userId, decimal amount)
+    {
+        await AddBanlanceToWallet(userId, amount, "Wallet");
+        //transsaction
+        return "Success AdminDeduct";
+    }
 }
