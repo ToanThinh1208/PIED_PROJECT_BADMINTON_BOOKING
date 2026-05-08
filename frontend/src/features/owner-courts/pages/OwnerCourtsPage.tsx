@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useOwnerCourts } from "../hooks/useOwnerCourts";
 import { CreateCourtDialog } from "../components/CreateCourtDialog";
 import { Input } from "@/shared/components/ui/input";
-import { Search, LayoutGrid, List as ListIcon, Loader2, MapPin, Clock, Info, Eye } from "lucide-react";
+import { Search, Loader2, MapPin, Clock, Eye } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import {
   Table,
@@ -22,7 +22,7 @@ import {
 import type { MyCourtListItem } from "../types";
 
 export default function OwnerCourtsPage() {
-  const [pageIndex, setPageIndex] = useState(1);
+  const [pageIndex] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourt, setSelectedCourt] = useState<MyCourtListItem | null>(null);
   

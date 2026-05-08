@@ -31,7 +31,7 @@ import {
 import type { PendingCourt } from "../types";
 
 export default function AdminCourtsPage() {
-  const [pageIndex, setPageIndex] = useState(1);
+  const [pageIndex] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewingCourt, setViewingCourt] = useState<PendingCourt | null>(null);
   const [rejectingCourt, setRejectingCourt] = useState<PendingCourt | null>(null);
@@ -121,7 +121,7 @@ export default function AdminCourtsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.items.map((court) => (
+              {data.items.map((court: PendingCourt) => (
                 <TableRow key={court.courtId} className="group hover:bg-emerald-50/30 transition-all border-b border-gray-50 last:border-0">
                   <TableCell className="py-4 px-6">
                     <div className="w-20 h-14 rounded-xl overflow-hidden shadow-sm border border-white">

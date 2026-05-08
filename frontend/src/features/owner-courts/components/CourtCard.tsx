@@ -1,6 +1,6 @@
 import type { MyCourtListItem } from "../types";
 import { Badge } from "@/shared/components/ui/badge";
-import { Building2, Clock, MapPin } from "lucide-react";
+import { Building2, MapPin } from "lucide-react";
 
 interface CourtCardProps {
   court: MyCourtListItem;

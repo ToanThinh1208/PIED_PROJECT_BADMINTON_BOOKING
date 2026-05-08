@@ -1,4 +1,4 @@
-import { Outlet, useNavigate, useLocation, NavLink } from "react-router-dom";
+import { Outlet, useNavigate, NavLink } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Building2, 
@@ -6,7 +6,6 @@ import {
   Settings, 
   Menu,
   Bell,
-  Plus,
   LayoutGrid
 } from "lucide-react";
 import { useState } from "react";
@@ -27,7 +26,6 @@ const NAV_ITEMS = [
 export default function OwnerLayout() {
   const { accessToken, user } = useAuthStore();
   const navigate = useNavigate();
-  const location = useLocation();
   const [isSidebarOpen, setSidebarOpen] = useState(true);
 
   // Đồng bộ hóa dữ liệu profile
