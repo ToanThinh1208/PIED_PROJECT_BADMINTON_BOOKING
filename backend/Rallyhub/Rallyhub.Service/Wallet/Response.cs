@@ -12,5 +12,12 @@ public class Response
         public string? BankAccountName { get; set; } = null;
         public decimal Balance { get; set; }
     }
+
+    public class AddBalanceToWalletFromPaymentResponse
+    {
+        public Guid Id { get; set; }
+        public decimal Amount { get; set; }
+        public string QrCodeUrl { get; set; } = null!;
+    }
     
 }

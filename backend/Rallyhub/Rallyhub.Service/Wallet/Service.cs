@@ -101,7 +101,44 @@ public class Service : IService
         }
         return "Failed remove bank wallet";
     }
+    public async Task<Response.AddBalanceToWalletFromPaymentResponse> AddBalanceToWalletFromPayment(
+        decimal requestAmount)
+    {
+        var customerIdClaim = _httpAccessor.HttpContext.User.Claims
+            .FirstOrDefault(x => x.Type == "CustomerId")?.Value;
+        if (customerIdClaim == null)
+        {
+            throw new Exception("Không tìm thấy thông tin của User");
+        }
+        var customerId = Guid.Parse(customerIdClaim);
+        
+        var existWallet = await _dbcontext.Wallets.FirstOrDefaultAsync(x => x.UserId == customerId);
+        if (existWallet == null)
+        {
+            throw new Exception("Không tìm thấy ví");
+        }
+        
+        string bankName = "MBBank";
+        string bankAccount = "VQRQAIUZK3222";
+        string description = $"WA-{existWallet.Id:N}";
+        
+        string qrCodeUrl = $"https://qr.sepay.vn/img?" +
+                           $"acc={bankAccount}&" +
+                           $"bank={bankName}&" +
+                           $"amount={requestAmount}&" +
+                           $"des={description}&" +
+                           $"template=qronly";
     
+        
+        //Transaction new 
+        
+        return new Response.AddBalanceToWalletFromPaymentResponse
+        {
+            Id = existWallet.Id,
+            Amount = requestAmount,
+            QrCodeUrl = qrCodeUrl,
+        };
+    }
     public async Task<bool> AddBanlanceToWallet(Guid userId, decimal amount, string type)
     {
         var user = await _dbcontext.Users.FirstOrDefaultAsync(x => x.Id == userId);

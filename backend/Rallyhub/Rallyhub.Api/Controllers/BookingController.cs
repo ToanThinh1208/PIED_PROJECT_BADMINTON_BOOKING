@@ -31,6 +31,15 @@ public class BookingController: ControllerBase
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
             , HttpContext.TraceIdentifier));
     }
+    
+    [HttpPost("CustomerCreateBookingByWallet")]
+    public async Task<IActionResult> CreateBookingByWallet([FromBody] Request.ListAvailableSlots request)
+    {
+        var result = await _bookingService.CreateBookingByWallet(request);
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
+            , HttpContext.TraceIdentifier));
+    }
+    
     [HttpPost("SepayWebhookHandler")]
     public async Task<IActionResult> SepayWebhookHandler([FromBody] Request.SepayWebhookRequest request)
     {

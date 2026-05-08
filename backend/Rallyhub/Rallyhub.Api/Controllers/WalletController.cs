@@ -37,6 +37,13 @@ public class WalletController : ControllerBase
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success remove bank wallet", HttpContext.TraceIdentifier));
     }
     
+    [HttpPatch("AddBalanceToWalletFromPayment")]
+    public async Task<IActionResult> AddBalanceToWalletFromPayment(decimal requestAmount)
+    {
+        var result = await _walletService.AddBalanceToWalletFromPayment(requestAmount);
+        return Ok(ApiResponseFactory.SuccessResponse(result, "Success add money", HttpContext.TraceIdentifier));
+    }
+    
     [HttpPatch("AdminUpBalanceForUser")]
     public async Task<IActionResult> AdminUpBalanceForUser(Guid userId,  decimal amount)
     {
