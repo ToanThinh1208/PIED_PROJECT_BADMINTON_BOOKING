@@ -91,7 +91,7 @@ export function EditProfileDialog({ isOpen, onOpenChange }: EditProfileDialogPro
                 
                 <div className="flex-1 w-full">
                   <ProfileForm
-                    key={`${user.firstName}-${user.lastName}-${user.phoneNumber}`}
+                    key={user.id || user.email}
                     initialData={{
                       firstName: user.firstName || "",
                       lastName: user.lastName || "",
