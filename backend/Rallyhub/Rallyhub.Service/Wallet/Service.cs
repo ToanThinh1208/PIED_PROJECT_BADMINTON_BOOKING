@@ -101,7 +101,7 @@ public class Service : IService
         }
         return "Failed remove bank wallet";
     }
-
+    
     public async Task<bool> AddBanlanceToWallet(Guid userId, decimal amount, string type)
     {
         var user = await _dbcontext.Users.FirstOrDefaultAsync(x => x.Id == userId);

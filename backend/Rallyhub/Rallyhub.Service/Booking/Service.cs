@@ -231,7 +231,6 @@ public class Service: IService
             QrCodeUrl = qrCodeUrl
         };
     }
-
     public async Task<Response.CreateBookingResponse> CreateBookingByWallet(Request.ListAvailableSlots request)
     {
         var customerIdClaim = _httpContext.HttpContext.User.Claims
