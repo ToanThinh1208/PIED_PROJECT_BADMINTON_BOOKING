@@ -138,6 +138,7 @@ public class Service : IService
         wallet.Balance += amount;
         wallet.Version += 1;
         wallet.UpdatedAt = DateTimeOffset.UtcNow;
+        _dbcontext.Wallets.Update(wallet);
         var result = await _dbcontext.SaveChangesAsync();
         if (result > 0)
         {
@@ -185,6 +186,7 @@ public class Service : IService
         wallet.Balance -= amount;
         wallet.Version += 1;
         wallet.UpdatedAt = DateTimeOffset.UtcNow;
+        _dbcontext.Wallets.Update(wallet);
         var result = await _dbcontext.SaveChangesAsync();
         if (result > 0)
         {

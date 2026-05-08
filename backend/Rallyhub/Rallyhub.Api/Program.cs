@@ -22,6 +22,7 @@ using TransactionService = Rallyhub.Service.Transaction;
 using WalletService = Rallyhub.Service.Wallet;
 using BookingService = Rallyhub.Service.Booking;
 using WithdrawalService = Rallyhub.Service.Withdrawal;
+using sepayService = Rallyhub.Service.SepayService;
 
 
 // using DiscordService = Rallyhub.Service.DiscordService;
@@ -67,7 +68,7 @@ builder.Services.AddScoped<TransactionService.IService, TransactionService.Servi
 builder.Services.AddScoped<WalletService.IService, WalletService.Service>();
 builder.Services.AddScoped<BookingService.IService, BookingService.Service>();
 builder.Services.AddScoped<WithdrawalService.IService, WithdrawalService.Service>();
-
+builder.Services.AddScoped<sepayService.IService, sepayService.Service>();
 
 
 
@@ -86,11 +87,14 @@ builder.Services.AddStackExchangeRedisCache(options =>
 builder.Services.AddQuartz(options =>
 {
     var bookingJobKey = new JobKey(nameof(BookingTimeoutJob));
+    var bookingDetailJobKey = new JobKey(nameof(BookingDetailTimeJob));
     options
         .AddJob<BookingTimeoutJob>(bookingJobKey)
+        .AddJob<BookingDetailTimeJob>(bookingDetailJobKey)
         .AddTrigger(trigger =>
             trigger
                 .ForJob(bookingJobKey)
+                .ForJob(bookingDetailJobKey)
                 .WithSimpleSchedule(schedule => schedule
                     .WithIntervalInSeconds(10) // 2.5 phút = 150 giây
                     .RepeatForever()

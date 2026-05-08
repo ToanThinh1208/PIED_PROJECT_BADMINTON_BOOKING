@@ -197,6 +197,7 @@ public class Service: IService
                 x.StartTime == slot.StartTime &&
                 x.EndTime == slot.EndTime).Price,
             Status = "Pending",
+            CreatedAt = DateTimeOffset.UtcNow,
         }).ToList();
         
         await _dbContext.Bookings.AddAsync(booking);
@@ -229,59 +230,5 @@ public class Service: IService
             QrCodeUrl = qrCodeUrl
         };
     }
-    public async Task<bool> SepayWebhookHandler(Request.SepayWebhookRequest request)
-    {
-        var description = request.Code;
-        var raw = description.Replace("RA", "");
     
-        if (string.IsNullOrEmpty(raw) || raw.Length != 32)
-        {
-            throw new Exception("Error code");
-        }
-        var formatted = 
-                        $"{raw.Substring(0, 8)}-" +
-                        $"{raw.Substring(8, 4)}-" +
-                        $"{raw.Substring(12, 4)}-" +
-                        $"{raw.Substring(16, 4)}-" +
-                        $"{raw.Substring(20, 10)}";
-        
-        Repository.Entity.Booking? targetBooking = null;
-
-        if (Guid.TryParse(formatted, out var exactGuid))
-        {
-            targetBooking = await _dbContext.Bookings
-                .Include(x => x.BookingDetails)
-                .FirstOrDefaultAsync(x => x.Id == exactGuid);
-        }
-
-        if (targetBooking == null)
-        {
-            targetBooking = await _dbContext.Bookings
-                .Include(x => x.BookingDetails)
-                .Where(x => EF.Functions.TrigramsSimilarity(x.Id.ToString(), formatted) > 0.68)
-                .OrderBy(x => EF.Functions.TrigramsSimilarityDistance(x.Id.ToString(), formatted))
-                .FirstOrDefaultAsync();
-        }
-        if (targetBooking == null)
-        {
-            throw new Exception("Not found");
-        }   
-        if (targetBooking.Status != "Pending")
-        {
-            throw new Exception("Booking is completed");
-        }
-        if(targetBooking.FinalPrice != request.TransferAmount)
-        {
-            throw new Exception("Invalid transfer amount");
-        }
-        
-        targetBooking.Status = "Banked";
-        _dbContext.Update(targetBooking);
-        var result = await _dbContext.SaveChangesAsync();
-        if (result > 0)
-        {
-            return true;
-        }
-        return false;
-    }
 }

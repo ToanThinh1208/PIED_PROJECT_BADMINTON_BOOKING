@@ -23,8 +23,4 @@
       <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="SepayService\" />
-    </ItemGroup>
-
 </Project>

@@ -9,7 +9,7 @@ public class BookingTimeoutJob  : IJob
 {
     private const string PendingStatus = "Pending";
     private const string CancelledStatus = "Cancelled";
-    private static readonly TimeSpan BookingTimeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan BookingTimeout = TimeSpan.FromSeconds(30);
     
     private readonly AppDbContext _dbContext;
     private readonly ILogger _logger;
@@ -44,6 +44,7 @@ public class BookingTimeoutJob  : IJob
             foreach (var detail in booking.BookingDetails)
             {
                 detail.Status = CancelledStatus;
+                detail.UpdatedAt = now;
             }
         }
         
