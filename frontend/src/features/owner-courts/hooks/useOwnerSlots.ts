@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ownerCourtService } from "../services";
-import type { GetAvailableSlotsRequest, CreateOverrideSlotRequest } from "../types";
+import type { 
+  GetAvailableSlotsRequest, 
+  CreateOverrideSlotRequest,
+  CreateExceptionSlotRequest 
+} from "../types";
 import { toast } from "sonner";
 
 export const useSubCourtSlots = (subCourtId: string) => {
@@ -37,5 +41,25 @@ export const useCreateOverrideSlot = () => {
       queryClient.invalidateQueries({ queryKey: ["available-slots"] });
       queryClient.invalidateQueries({ queryKey: ["override-slots"] });
     },
+  });
+};
+
+export const useCreateExceptionSlot = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateExceptionSlotRequest) => ownerCourtService.createExceptionSlot(data),
+    onSuccess: () => {
+      toast.success("Đã khóa slot thành công");
+      queryClient.invalidateQueries({ queryKey: ["available-slots"] });
+    },
+  });
+};
+
+export const useExceptionSlots = (subCourtId: string) => {
+  return useQuery({
+    queryKey: ["exception-slots", subCourtId],
+    queryFn: () => ownerCourtService.getExceptionSlotsBySubCourtId(subCourtId),
+    enabled: !!subCourtId,
   });
 };

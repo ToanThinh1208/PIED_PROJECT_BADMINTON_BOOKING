@@ -6,7 +6,9 @@ import type {
   AvailableSlot, 
   GetAvailableSlotsRequest,
   CreateOverrideSlotRequest,
-  OverrideSlotResponse
+  OverrideSlotResponse,
+  CreateExceptionSlotRequest,
+  ExceptionSlotResponse
 } from "./types";
 import type { PaginatedResponse } from "@/shared/types";
 
@@ -95,5 +97,22 @@ export const ownerCourtService = {
     return apiClient.get<OverrideSlotResponse[]>("/Owner/GetOverrideSlotBySubCourtId", {
       params: { subCourtId },
     }) as unknown as Promise<OverrideSlotResponse[]>;
+  },
+
+  // Exception (Block) Slots
+  createExceptionSlot: async (data: CreateExceptionSlotRequest) => {
+    return apiClient.post("/Owner/CreateExceptionSlot", {
+      SubCourtId: data.subCourtId,
+      Date: data.date,
+      StartTime: data.startTime,
+      EndTime: data.endTime,
+      Reason: data.reason,
+    });
+  },
+
+  getExceptionSlotsBySubCourtId: async (subCourtId: string) => {
+    return apiClient.get<ExceptionSlotResponse[]>("/Owner/GetExceptionSlotBySubCourtId", {
+      params: { subCourtId },
+    }) as unknown as Promise<ExceptionSlotResponse[]>;
   },
 };

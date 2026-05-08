@@ -61,6 +61,7 @@ export type AvailableSlot = {
   endTime: string;
   price: number;
   isAvailable: boolean;
+  reason?: string; // Added to support blocked slots reason
 };
 
 export interface CreateOverrideSlotRequest {
@@ -85,4 +86,21 @@ export interface OverrideSlotResponse {
 export interface GetAvailableSlotsRequest {
   subCourtId: string;
   date: string; // yyyy-MM-dd
+}
+
+export interface CreateExceptionSlotRequest {
+  subCourtId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  reason: string;
+}
+
+export interface ExceptionSlotResponse {
+  id: string;
+  subCourtId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  reason: string;
 }
