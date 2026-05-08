@@ -44,8 +44,8 @@ export const API_ENDPOINTS = {
     GET_BY_ID: "/Court/GetCourtDetailsById{courtId}",
   },
   MAP: {
-    BOXING_BOX: "/Map/boxing-box",
-    RADIUS: "/Map/radius",
+    BOXING_BOX: "/Map/boxing_ox",
+    RADIUS: "/Map/SearchByRadius",
     TEXT: "/Map/text",
   },
 } as const;
