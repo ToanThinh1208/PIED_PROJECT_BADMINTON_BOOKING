@@ -218,7 +218,7 @@ public class Service: IService
         return new Response.CreateBookingResponse
         {
             BookingId = booking.Id,
-            TotalPrice = booking.TotalPrice,
+            TotalPrice = booking.FinalPrice,
             ExpiredAt = booking.ExpiresAt,
             Status = booking.Status,
             Slots = booking.BookingDetails.Select(x => new Response.BookingDetailItem
@@ -230,17 +230,17 @@ public class Service: IService
             QrCodeUrl = qrCodeUrl
         };
     }
-    
     public async Task<bool> SepayWebhookHandler(Request.SepayWebhookRequest request)
     {
         var description = request.Code;
         var raw = description.Replace("RA", "");
     
-        if (string.IsNullOrEmpty(raw) || raw.Length < 28)
+        if (string.IsNullOrEmpty(raw) || raw.Length != 32)
         {
             throw new Exception("Error code");
         }
-        var formatted = $"{raw.Substring(0, 8)}-" +
+        var formatted = 
+                        $"{raw.Substring(0, 8)}-" +
                         $"{raw.Substring(8, 4)}-" +
                         $"{raw.Substring(12, 4)}-" +
                         $"{raw.Substring(16, 4)}-" +
@@ -266,7 +266,7 @@ public class Service: IService
         if (targetBooking == null)
         {
             throw new Exception("Not found");
-        }
+        }   
         if (targetBooking.Status != "Pending")
         {
             throw new Exception("Booking is completed");
