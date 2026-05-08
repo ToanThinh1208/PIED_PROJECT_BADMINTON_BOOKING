@@ -5,7 +5,7 @@ using Rallyhub.Service.SepayService;
 namespace Rallyhub.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class SepayController : ControllerBase
 {
     private readonly IService _sepayService;

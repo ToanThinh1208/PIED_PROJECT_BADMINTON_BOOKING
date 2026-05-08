@@ -8,7 +8,7 @@ namespace Rallyhub.Api.Controllers;
 
 
 //[Authorize(Policy = JwtExtensions.CustomerPolicy)]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class MapController : ControllerBase
 {
     private readonly MapService.IService _mapService;

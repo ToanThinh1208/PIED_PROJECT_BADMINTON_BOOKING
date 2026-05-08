@@ -93,8 +93,15 @@ public class Service : IService
                 Type = Transaction.Request.TypeList.Payment,
                 Amount = request.TransferAmount,
                 BalanceBefore = wallet.Balance,
-                BalanceAfter = wallet.Balance - request.TransferAmount,
+                BalanceAfter = wallet.Balance,
                 Status = "Success",
+                SePayId = request.Id.ToString(),
+                BankRefCode = request.ReferenceCode,
+                BankAccountNumber = request.AccountNumber,
+                TransferContent = request.Content,
+                ActionCode = request.Code,
+                Signature =  request.Description,
+                BookingId =  targetBooking.Id,
                 WalletId = wallet.Id,
             };
             if (!await _transactionService.CreateTransaction(transactionI))
@@ -160,6 +167,13 @@ public class Service : IService
             }
 
             transaction.Status = "Success";
+            transaction.SePayId = request.Id.ToString();
+            transaction.BankRefCode = request.ReferenceCode;
+            transaction.BankAccountNumber = request.AccountNumber;
+            transaction.TransferContent = request.Content;
+            transaction.ActionCode = request.Code;;
+            transaction.Signature = request.Description;
+            transaction.UpdatedAt = DateTimeOffset.UtcNow;
             _dbContext.Update(transaction);
             var result = await _dbContext.SaveChangesAsync();
             if (result > 0)

@@ -10,7 +10,6 @@ public class Request
     public class GetWithdrawalRequest()
     {
         public Guid? UserId { get; set; } = null;
-        public DateTimeOffset? CreatedAt { get; set; }  = null;
 
     }
     

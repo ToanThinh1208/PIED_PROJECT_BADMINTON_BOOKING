@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Rallyhub.Api.Extention;
 using Rallyhub.Service.Models;
 using Rallyhub.Service.Wallet;
 
@@ -15,14 +16,16 @@ public class WalletController : ControllerBase
     {
         _walletService = walletService;
     }
-
-    [HttpPatch("addInforWallet")]
+    
+    [Authorize(Policy = JwtExtensions.CustomerOrOwnerPolicy)]
+    [HttpPatch("AddInforWallet")]
     public async Task<IActionResult> AddInforWallet([FromBody] Request.AddInforWalletRequest request)
     {
         var result = await _walletService.AddInforWallet(request);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success add infor wallet", HttpContext.TraceIdentifier));
     }
     
+    [Authorize(Policy = JwtExtensions.CustomerOrOwnerPolicy)]
     [HttpGet("GetInforWallet")]
     public async Task<IActionResult> GetInforWallet()
     {
@@ -30,6 +33,7 @@ public class WalletController : ControllerBase
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success get infor wallet", HttpContext.TraceIdentifier));
     }
     
+    [Authorize(Policy = JwtExtensions.CustomerOrOwnerPolicy)]
     [HttpPatch("RemoveBankWallet")]
     public async Task<IActionResult> RemoveBankWallet()
     {
@@ -37,6 +41,7 @@ public class WalletController : ControllerBase
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success remove bank wallet", HttpContext.TraceIdentifier));
     }
     
+    [Authorize(Policy = JwtExtensions.CustomerOrOwnerPolicy)]
     [HttpPatch("AddBalanceToWalletFromPayment")]
     public async Task<IActionResult> AddBalanceToWalletFromPayment(decimal requestAmount)
     {
@@ -44,6 +49,7 @@ public class WalletController : ControllerBase
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success add money", HttpContext.TraceIdentifier));
     }
     
+    [Authorize(Policy = JwtExtensions.AdminPolicy)]
     [HttpPatch("AdminUpBalanceForUser")]
     public async Task<IActionResult> AdminUpBalanceForUser(Guid userId,  decimal amount)
     {

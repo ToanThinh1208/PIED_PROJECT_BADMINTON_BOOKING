@@ -25,7 +25,10 @@ public class BookingDetailTimeJob : IJob
         
         var now = DateTimeOffset.UtcNow;
         
-        var pendingBankedBookingDetails = await _dbContext.BookingDetails.Where(x => x.Status == PendingStatus && new DateTimeOffset(x.Date.Date + x.EndTime.ToTimeSpan(), x.Date.Offset) < now).ToListAsync(context.CancellationToken);
+        var pendingBankedBookingDetails = await _dbContext.BookingDetails
+            .Where(x => x.Status == PendingStatus && 
+                        new DateTimeOffset(x.Date.Date + x.EndTime.ToTimeSpan(), x.Date.Offset) < now)
+            .ToListAsync(context.CancellationToken);
         if (pendingBankedBookingDetails.Count == 0)
         {
             _logger.LogInformation("BookingTimeoutJob: no expired bookings found.");
@@ -41,6 +44,7 @@ public class BookingDetailTimeJob : IJob
                 booking.Status = CompletedStatus;
                 booking.UpdatedAt = now;
             }
+            _dbContext.Update(booking);
         }
         
         _dbContext.UpdateRange(pendingBankedBookingDetails);

@@ -27,10 +27,10 @@ public class WithdrawalController : ControllerBase
     
     [Authorize(Policy = JwtExtensions.AdminPolicy)]
     [HttpGet("AdminGetWithdrawalRequest")]
-    public async Task<IActionResult> AdminGetWithdrawalRequest([FromQuery] Request.GetWithdrawalRequest request, 
-        Service.Base.Request.Pagination pagination)
+    public async Task<IActionResult> AdminGetWithdrawalRequest([FromQuery] Guid? userId, 
+        Service.Base.Request.PagingDay pagination)
     {
-        var result = await _withdrawalService.AdminGetWithdrawalRequest(request, pagination);
+        var result = await _withdrawalService.AdminGetWithdrawalRequest(userId, pagination);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success get all withdrawal", HttpContext.TraceIdentifier));
     }
     
@@ -52,7 +52,7 @@ public class WithdrawalController : ControllerBase
     
     [Authorize(Policy = JwtExtensions.CustomerOrOwnerPolicy)]
     [HttpPost("GetWithdrawalRequest")]
-    public async Task<IActionResult> GetWithdrawalRequest(Service.Base.Request.Pagination pagination)
+    public async Task<IActionResult> GetWithdrawalRequest(Service.Base.Request.PagingDay pagination)
     {
         var result = await _withdrawalService.GetWithdrawalRequest(pagination);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success get withdrawal", HttpContext.TraceIdentifier));
