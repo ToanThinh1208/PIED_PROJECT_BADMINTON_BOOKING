@@ -4,16 +4,28 @@ public class Response
 {
     public class GetWithdrawalResponse()
     {
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
+        public string? Email { get; set; } = null;
+        public string? Avatar { get; set; } = null;
+        public string? FirstName { get; set; } = null;
+        public string? LastName { get; set; } = null;
         public decimal Amount { get; set; }
-        public string BankName { get; set; }
-        public string BankAccountNumber { get; set; }
-        public string BankAccountName { get; set; }     
+        public string? BankName { get; set; } = null;
+        public string? BankAccountNumber { get; set; } = null;
+        public string? BankAccountName { get; set; }      = null;
         public Guid WalletId { get; set; }
         public Guid? TransactionId { get; set; } = null;
         public DateTimeOffset CreatedAt { get; set; }
     }
-    public string Status { get; set; }
-    public string? RejectionReason { get; set; } = null;
-    public string? AdminNote { get; set; } = null;
-    public Guid? ProcessedByAdminId { get; set; } 
+    
+    public class UsergetWithdrawalResponse() : GetWithdrawalResponse
+    {
+        public string Status { get; set; } 
+        public string? RejectionReason { get; set; }
+        public string? AdminNote { get; set; }
+        public Guid? ProcessedByAdminId { get; set; } 
+        public Guid? TransactionId { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; }
+    }
 }

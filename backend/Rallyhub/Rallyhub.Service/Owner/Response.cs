@@ -17,6 +17,9 @@ public class Response
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
         public string PictureUrl { get; set; } = null!;
+        public string MapUrl { get; set; } = null!;
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
     }
     
     public class CreateSubCourtResponse

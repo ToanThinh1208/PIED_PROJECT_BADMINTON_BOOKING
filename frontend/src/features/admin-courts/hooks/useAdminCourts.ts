@@ -10,7 +10,7 @@ export const usePendingCourts = (params: GetPendingCourtsRequest) => {
     queryKey: ["admin", "pending-courts", params],
     queryFn: async () => {
       const response = await adminCourtService.getAllPendingCourts(params);
-      return response.data;
+      return response;
     },
   });
 };

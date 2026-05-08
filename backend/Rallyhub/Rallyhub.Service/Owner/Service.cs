@@ -98,7 +98,9 @@ public class Service : IService
                 StartTime = x.OpenTime,
                 EndTime = x.CloseTime,
                 PictureUrl = x.PictureUrl,
-
+                MapUrl = x.MapUrl,
+                Latitude = x.Latitude,
+                Longitude = x.Longitude,
             });  
         var listResult = await selectedQuery.ToListAsync();  
   

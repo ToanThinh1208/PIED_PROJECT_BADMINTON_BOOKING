@@ -21,6 +21,6 @@ export const useCreateCourt = () => {
 export const useOwnerCourts = (params: GetMyCourtsRequest) => {
   return useQuery({
     queryKey: ["owner-courts", params],
-    queryFn: () => ownerCourtService.getAllMyCourts(params),
+    queryFn: () => ownerCourtService.getCourts(params),
   });
 };

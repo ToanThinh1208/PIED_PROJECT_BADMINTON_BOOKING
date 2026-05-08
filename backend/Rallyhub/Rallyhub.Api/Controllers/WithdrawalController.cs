@@ -44,9 +44,18 @@ public class WithdrawalController : ControllerBase
     
     [Authorize(Policy = JwtExtensions.AdminPolicy)]
     [HttpPost("AdminRejectWithdrawalRequest")]
-    public async Task<IActionResult> AdminRejectWithdrawalRequest(Guid withdrawalRequestId, string reason)
+    public async Task<IActionResult> AdminRejectWithdrawalRequest(Guid withdrawalRequestId, string reason, string? note)
     {
-        var result = await _withdrawalService.AdminRejectWithdrawalRequest(withdrawalRequestId, reason);
+        var result = await _withdrawalService.AdminRejectWithdrawalRequest(withdrawalRequestId, reason,  note);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success reject withdrawal", HttpContext.TraceIdentifier));
     }
+    
+    [Authorize(Policy = JwtExtensions.CustomerOrOwnerPolicy)]
+    [HttpPost("GetWithdrawalRequest")]
+    public async Task<IActionResult> GetWithdrawalRequest(Service.Base.Request.Pagination pagination)
+    {
+        var result = await _withdrawalService.GetWithdrawalRequest(pagination);
+        return Ok(ApiResponseFactory.SuccessResponse(result, "Success get withdrawal", HttpContext.TraceIdentifier));
+    }
+
 }
