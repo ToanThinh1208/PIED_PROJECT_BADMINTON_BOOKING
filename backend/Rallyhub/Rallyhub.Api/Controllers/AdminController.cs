@@ -91,10 +91,10 @@ public class AdminController: ControllerBase
             , HttpContext.TraceIdentifier));  
     }
 
-    [HttpPatch("Refund")]
-    public async Task<IActionResult> Refund(Request.RefundRequest request)
+    [HttpPatch("AdminRefund")]
+    public async Task<IActionResult> AdminRefund(Request.AdminRefundRequest request)
     {
-        var result = await _adminService.Refund(request);
+        var result = await _adminService.AdminRefund(request);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
     }
     [HttpGet("GetWallet")]

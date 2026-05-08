@@ -11,12 +11,19 @@ public class Service: IService
     private readonly AppDbContext _dbContext;
     private readonly MailService.IService _mailService;
     private readonly Transaction.IService _transactionService;
+    private readonly IHttpContextAccessor _httpContext;  
+    private readonly Wallet.IService _walletService;
+    private readonly Transaction.IService _transaction;
 
-    public Service(AppDbContext dbContext, MailService.IService mailService, Transaction.IService transactionService)
+    public Service(AppDbContext dbContext, MailService.IService mailService, Transaction.IService transactionService, IHttpContextAccessor httpContext,
+        Wallet.IService walletService, Transaction.IService transaction)
     {
         _dbContext = dbContext;
         _mailService = mailService;
         _transactionService = transactionService;
+        _httpContext = httpContext;
+        _walletService = walletService;
+        _transaction = transaction;
     }
 //user
     public async Task<Base.Response.PageResult<Response.UserDto>> FilterUser(Request.FilterUserRequest request)
@@ -672,29 +679,71 @@ public class Service: IService
         }
         return "Fail";
     }
-    public async Task<Response.RefundResponse> Refund(Request.RefundRequest request)
+    public async Task<Response.AdminRefundResponse> AdminRefund(Request.AdminRefundRequest request)
     {
+        var customerIdClaim = _httpContext.HttpContext.User.Claims
+            .FirstOrDefault(x => x.Type == "CustomerId")?.Value;
+        if (customerIdClaim == null)
+        {
+            throw new Exception("Không tìm thấy Customer");
+        }
+        var customerId = Guid.Parse(customerIdClaim);
         var user = await _dbContext.Users
-            .Include(x => x.Customer)
-            .FirstOrDefaultAsync(x => x.Customer!.Id == request.CustomerId);
+            .Include(x => x.Wallet)
+            .FirstOrDefaultAsync(x => x.Customer!.Id == customerId);
         if (user == null)
         {
             throw new Exception("Không tìm thấy user");
         }
-        var bookingDetail = await _dbContext.BookingDetails
-                                .FirstOrDefaultAsync(x => x.Id == request.BookingDetailId);
-        if (bookingDetail == null)
+       
+        var booking = await _dbContext.Bookings
+            .Include(x => x.BookingDetails)
+                .ThenInclude(x => x.SubCourt)
+                    .ThenInclude(x => x.Court)
+            .Include(x => x.Customer)
+            .FirstOrDefaultAsync(x => x.Id == request.BookingId);
+        if (booking == null)
         {
-            throw new Exception("Không tìm thấy  booking detail");
+            throw new Exception("Không tìm thấy đơn đặt sân");
+        }
+        if (booking.Status != "Banked")
+        {
+            throw new Exception($"Không thể hoàn tiền đối với đơn hàng đang ở trạng thái {booking.Status}");
+        }
+        var earlierSlot = booking.BookingDetails.OrderBy(x => x.StartTime).First();
+        var refundDeadline = earlierSlot.Date.AddHours((double)-earlierSlot.SubCourt.Court.TimeRefundBefor!);
+        var timeNow = DateTimeOffset.UtcNow;
+        if (timeNow > refundDeadline)
+        {
+            throw new Exception("Không thể refund");
         }
 
-        if (bookingDetail.Status == "Refunded")
+        if (!await _walletService.AddBanlanceToWallet(user.Id, booking.FinalPrice, "payment"))
         {
-            throw new Exception("Đã hoàn tiền rồi");
+            throw new Exception("Wallet reject balance failed");
         }
-        bookingDetail.Status = "Refunded";
-        bookingDetail.UpdatedAt = DateTimeOffset.UtcNow;
-        _dbContext.BookingDetails.Update(bookingDetail);
+        
+        var transactionI = new Transaction.Request.CreateTransactionRequest()
+        {
+            Type = Transaction.Request.TypeList.Refund,
+            Amount = booking.FinalPrice,
+            BalanceBefore = user.Wallet!.Balance,
+            BalanceAfter =  user.Wallet!.Balance + booking.FinalPrice,
+            Status = "Success",
+            WalletId =  user.Wallet!.Id,
+        };
+        if (!await _transactionService.CreateTransaction(transactionI))
+        {
+            throw new Exception("Error creating transaction");
+        }
+        booking.Status = "Refund";
+        booking.UpdatedAt = DateTimeOffset.UtcNow;
+        _dbContext.Bookings.Update(booking);
+
+        foreach (var details in booking.BookingDetails)
+        {
+            details.Status = "Cancelled";
+        }
         await _dbContext.SaveChangesAsync();
         await _mailService.SendMail(new MailContent()
         {
@@ -703,10 +752,13 @@ public class Service: IService
             Body = $"Đã hoàn tiền thành công" + "\n"
                 + $"{request.ImageUrl}"
         });
-        return new Response.RefundResponse()
+        return new Response.AdminRefundResponse()
         {
-            Message = "Hoàn tiền thành công",
-            ImageUrl = request.ImageUrl
+            BookingId = booking.Id,
+            Status = "Refund",
+            RefundAmount = booking.FinalPrice,
+            Message = "Hoàn tiền thành công"
+            
         };
     }
     public async Task<Response.GetWalletResponse> GetWallet(Request.GetWalletRequest request)
