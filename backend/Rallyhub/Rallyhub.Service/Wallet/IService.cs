@@ -6,4 +6,6 @@ public interface IService
     public Task<string> AddInforWallet(Request.AddInforWalletRequest request);
     public Task<string> RemoveBankWallet();
     public Task<Response.GetInfoWalletResponse> GetInforWallet();
+    public Task<bool> AddBanlanceToWallet(Guid userId, decimal amount, string type);
+    public Task<bool> ApartBanlanceFromWallet(Guid userId, decimal amount, string type);
 }

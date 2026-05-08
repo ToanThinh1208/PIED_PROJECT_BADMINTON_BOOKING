@@ -8,11 +8,13 @@ public class Service : IService
 {
     private readonly AppDbContext _dbcontext;
     private readonly IHttpContextAccessor _httpAccessor;
+    private readonly Wallet.IService _walletService;
 
-    public Service(AppDbContext dbContext, IHttpContextAccessor httpAccessor)
+    public Service(AppDbContext dbContext, IHttpContextAccessor httpAccessor,  Wallet.IService walletService)
     {
         _dbcontext = dbContext;
         _httpAccessor = httpAccessor;
+        _walletService = walletService;
     }
     
     public async Task<string> CreateWithdrawalRequest(Request.CreateWithdrawalRequest request)
@@ -22,23 +24,6 @@ public class Service : IService
         var user = await _dbcontext.Users.FirstOrDefaultAsync(x => x.Id == userIdGuild);
         var wallet = await _dbcontext.Wallets.FirstOrDefaultAsync(x => x.UserId == userIdGuild);
         
-        if (wallet == null)
-        {
-            throw new Exception("Wallet not found");
-        }
-
-        if (wallet.BankName == null || wallet.BankAccount == null || wallet.BankAccountName == null)
-        {
-            throw new Exception("Fill your bank account");
-        }
-        if (request.Amount - wallet.Balance < 0)
-        {
-            throw new Exception("Balance of your wallet not enough");
-        }
-        if (request.Amount <= 0)
-        {
-            throw new Exception("Amount not valid");
-        }
 
         var newWithdrawal = new Repository.Entity.Withdrawal()
         {
@@ -49,8 +34,11 @@ public class Service : IService
             WalletId = wallet.Id,
             CreatedAt = DateTimeOffset.UtcNow
         };
-        wallet.Balance -= request.Amount;
-        wallet.Version += 1;
+        
+        if (!await _walletService.ApartBanlanceFromWallet(userIdGuild, request.Amount, "Wallet"))
+        {
+            throw new Exception("Wallet apart balance failed");
+        }
         
         _dbcontext.Withdrawals.Add(newWithdrawal);
         var result = await _dbcontext.SaveChangesAsync();
@@ -110,5 +98,45 @@ public class Service : IService
             TotalItems = total
         };
         return result;
+    }
+
+    public async Task<string> AdminApprovedWithdrawalRequest(Guid withdrawalRequestId)
+    {
+        var withdrawalRrquest = await _dbcontext.Withdrawals.FirstOrDefaultAsync(x => x.Id == withdrawalRequestId);
+        if (withdrawalRrquest == null)
+        {
+            throw new Exception("Withdrawal not found");
+        }
+        if (withdrawalRrquest.Status != "Pending")
+        {
+            throw new Exception("Withdrawal was rejected");
+        }
+        withdrawalRrquest.Status = "Approved";
+        var result = await _dbcontext.SaveChangesAsync();
+        if (result > 0)
+        {
+            return "Success approved withdrawal";
+        }
+        return "Failure approved withdrawal";
+    }
+
+    public async Task<string> AdminRejectWithdrawalRequest(Guid withdrawalRequestId, string reason)
+    {
+        var withdrawalRequest = await _dbcontext.Withdrawals.FirstOrDefaultAsync(x => x.Id == withdrawalRequestId);
+        if (withdrawalRequest == null)
+        {
+            throw new Exception("Withdrawal not found");
+        }
+        if (withdrawalRequest.Status != "Pending")
+        {
+            throw new Exception("Withdrawal was rejected");
+        }
+        withdrawalRequest.Status = "Rejected";
+        withdrawalRequest.RejectionReason = reason;
+        if (!await _walletService.AddBanlanceToWallet(withdrawalRequest.Wallet.UserId, withdrawalRequest.Amount, "Wallet"))
+        {
+            throw new Exception("Wallet reject balance failed");
+        }
+        return "Success rejected withdrawal";
     }
 }

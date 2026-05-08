@@ -34,11 +34,19 @@ public class WithdrawalController : ControllerBase
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success get all withdrawal", HttpContext.TraceIdentifier));
     }
     
-    // [Authorize(Policy = JwtExtensions.AdminPolicy)]
-    // [HttpPost("AdminAcceptWithdrawalRequest")]
-    // public async Task<IActionResult> AdminAcceptWithdrawalRequest(Request.CreateWithdrawalRequest request)
-    // {
-    //     var result = await _withdrawalService.AdminAcceptWithdrawalRequest(request);
-    //     return Ok(ApiResponseFactory.SuccessResponse(result, "Success invite withdrawal", HttpContext.TraceIdentifier));
-    // }
+    [Authorize(Policy = JwtExtensions.AdminPolicy)]
+    [HttpPost("AdminApprovedWithdrawalRequest")]
+    public async Task<IActionResult> AdminApprovedWithdrawalRequest(Guid withdrawalRequestId)
+    {
+        var result = await _withdrawalService.AdminApprovedWithdrawalRequest(withdrawalRequestId);
+        return Ok(ApiResponseFactory.SuccessResponse(result, "Success approved withdrawal", HttpContext.TraceIdentifier));
+    }
+    
+    [Authorize(Policy = JwtExtensions.AdminPolicy)]
+    [HttpPost("AdminRejectWithdrawalRequest")]
+    public async Task<IActionResult> AdminRejectWithdrawalRequest(Guid withdrawalRequestId, string reason)
+    {
+        var result = await _withdrawalService.AdminRejectWithdrawalRequest(withdrawalRequestId, reason);
+        return Ok(ApiResponseFactory.SuccessResponse(result, "Success reject withdrawal", HttpContext.TraceIdentifier));
+    }
 }
