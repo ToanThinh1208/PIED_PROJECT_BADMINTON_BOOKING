@@ -1,10 +1,8 @@
-using System.Security.Claims;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Rallyhub.Repository;
-using Rallyhub.Repository.Entity;
 using Exception = System.Exception;
-using StatusCourt = Rallyhub.Service.Enum.Enum.StatusCreateCourt;
 namespace Rallyhub.Service.Court;
 
 public class Service : IService
@@ -21,27 +19,17 @@ public class Service : IService
     public async Task<Base.Response.PageResult<Response.SearchCourtResponse>> SearchByFilter(
         Request.SearchByFilterRequest request)
     {
-        if (request.PageIndex <= 0)
-        {
-            throw new ArgumentException("PageIndex must be greater than 0");
-        }
-
-        if (request.PageSize <= 0)
-        {
-            throw new ArgumentException("PageSize must be greater than 0");
-        }
-
         var query = _dbContext.Courts
-            .Where(x => x.Status == nameof(StatusCourt.Active))
+            .Where(x => x.Status == "Active")
             .Select(x => new
             {
                 Court = x,
                 AverageRating = _dbContext.Feedbacks
                     .Where(f => f.CourtId == x.Id)
-                    .Select(f => (double?)f.Rating) //.Select(f => f.Rating).Average() => exception if rỗng  
+                    .Select(f => (double?)f.Rating)  
                     .Average() ?? 0,
             });
-        if (!string.IsNullOrWhiteSpace(request.Keyword))
+        if (request.Keyword != null)
         {
             var keyword = request.Keyword.Trim().ToLower();
             query = query.Where(x =>
@@ -76,9 +64,7 @@ public class Service : IService
             AverageRating = x.AverageRating,
             PictureUrl = x.Court.PictureUrl,
         });
-
         var listResult = await selectedQuery.ToListAsync();
-
         var result = new Base.Response.PageResult<Response.SearchCourtResponse>
         {
             Items = listResult,
@@ -86,10 +72,8 @@ public class Service : IService
             PageIndex = request.PageIndex,
             PageSize = request.PageSize
         };
-
         return result;
     }
-
     public async Task<Response.SearchCourtByIdResponse> GetCourtsDetailById(Guid courtId)
     {
         var courtResult = await _dbContext.Courts
@@ -112,16 +96,15 @@ public class Service : IService
 
         if (courtResult == null)
         {
-            throw new Exception($"court with id {courtId} not found");
+            throw new Exception("Không tìm thấy sân");
         }
 
         return courtResult;
     }
-
     public async Task<Response.ListSubCourtResponse> GetSubCourtById(Guid courtId)
     {
         var allSubCourts = await _dbContext.SubCourts
-            .Where(x => x.CourtId == courtId && x.Court.Status == nameof(StatusCourt.Active))
+            .Where(x => x.CourtId == courtId && x.Court.Status == "Active")
             .OrderBy(x => x.Name)
             .Select(x => new Response.SubCourtResponse
             {
@@ -130,7 +113,7 @@ public class Service : IService
             }).ToListAsync();
         if (allSubCourts.Count == 0)
         {
-            throw new Exception($"Không tìm thấy sân con nào thuộc court {courtId}");
+            throw new Exception($"Không tìm thấy sân con nào");
         }
 
         return new Response.ListSubCourtResponse

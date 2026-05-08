@@ -734,7 +734,6 @@ public class Service: IService
             Balance = wallet.Balance,
         };
     }
-    
     public async Task<string> AddBalanceToUser(Request.AddBalanceRequest request)
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == request.UserId);
