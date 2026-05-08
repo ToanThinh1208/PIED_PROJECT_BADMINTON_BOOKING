@@ -24,8 +24,8 @@ public class Response
     public class LikeListResponse
     {
         public Guid CourtId  { get; set; }
-        public string CourtName { get; set; }
-        public string CourtAddress { get; set; }
+        public string CourtName { get; set; } = null!;
+        public string CourtAddress { get; set; } = null!;
     }
 
     public class BookingResponse
