@@ -22,38 +22,31 @@ public class Service: IService
 //user
     public async Task<Base.Response.PageResult<Response.UserDto>> FilterUser(Request.FilterUserRequest request)
     {
-        var getAllUser = _dbContext.Users.Where(x => x.Role != Enum.Enum.Role.Admin.ToString());
+        var getAllUser = _dbContext.Users.Where(x => x.Role != "Admin");
 
-        if (!string.IsNullOrWhiteSpace(request.Search))
+        if (request.Search != null)
         {
-            getAllUser = getAllUser.Where(x => x.Email.Contains(request.Search) ||
-                                               (x.PhoneNumber != null && x.PhoneNumber.Contains(request.Search)));
+            getAllUser = getAllUser.Where(x => 
+                x.Email.Contains(request.Search) ||
+                (x.PhoneNumber != null && x.PhoneNumber.Contains(request.Search)));
         }
-        if (request.Id.HasValue)
+        if (request.Id != null)
         {
             getAllUser = getAllUser.Where(x => x.Id == request.Id);
         }
-        if (request.Role.HasValue)
+        if (request.Role != null)
         {
-            getAllUser = getAllUser.Where(x => x.Role == request.Role.ToString());
+            getAllUser = getAllUser.Where(x => x.Role == request.Role);
         }
-        if (request.Status.HasValue)
+        if (request.Status != null)
         {
-            getAllUser = getAllUser.Where(x => x.Status == request.Status.ToString());
+            getAllUser = getAllUser.Where(x => x.Status == request.Status);
         }
         var toTalItems = await getAllUser.CountAsync();
-        if (toTalItems < 1)
-        {
-            return new Base.Response.PageResult<Response.UserDto>()
-            {
-                Items = [],
-                PageIndex = request.PageIndex,
-                PageSize = request.PageSize,
-                TotalItems = toTalItems,
-            };
-        }
         var sortName = getAllUser.OrderBy(x => x.FirstName);
-        var pagedQuery = sortName.Skip((request.PageIndex - 1) * request.PageSize).Take(request.PageSize);
+        var pagedQuery = sortName
+            .Skip((request.PageIndex - 1) * request.PageSize)
+            .Take(request.PageSize);
         var selectQuery = pagedQuery.Select(x => new Response.UserDto()
         {
             Id  = x.Id,
@@ -75,21 +68,23 @@ public class Service: IService
         };
         return result;
     }
-
+    //CẦn CHECK LẠI
     public async Task<Response.UserDto> UserDetail(Request.UserDetailRequest request)
     {
         var user = await _dbContext.Users
             .Include(x => x.Customer)
-            .Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == request.Id);
+            .Include(x => x.Owner)
+            .FirstOrDefaultAsync(x => x.Id == request.Id);
         if (user == null)
         {
             throw new Exception("user không tồn tại");
         }
 
-        if (user.Role == Enum.Enum.Role.Customer.ToString())
+        if (user.Role == "Customer")
         {
             if(user.Customer == null) throw new Exception("Customer không tồn tại");
-            var bookings = _dbContext.Bookings.Where(x => x.CustomerId == user.Customer.Id);
+            var bookings = _dbContext.Bookings
+                .Where(x => x.CustomerId == user.Customer.Id);
             var bookingDto = bookings.Select(x => new Response.BookingDto()
             {
                 Id = x.Id,
@@ -115,10 +110,12 @@ public class Service: IService
             return result;
         }
 
-        if (user.Role == Enum.Enum.Role.Owner.ToString())
+        if (user.Role == "Owner")
         {
             if(user.Owner == null) throw new Exception("Owner không tồn tại");
-            var courts = _dbContext.Courts.Where(x => x.OwnerId == user.Owner.Id);
+            var courts = _dbContext.Courts
+                .Where(x => 
+                    x.OwnerId == user.Owner.Id);
             var courtDto = courts.Select(x => new Response.CourtDto()
             {
                 Id =  x.Id,
@@ -151,11 +148,10 @@ public class Service: IService
         }
         throw new Exception("Không có quyền xem user admin");
     }
-    
     public async Task BanAndUnbanUser(Request.BanAndUnbanUserRequest request)
     {
-        if (request.Status != Enum.Enum.StatusUsers.Banned.ToString() && 
-            request.Status != Enum.Enum.StatusUsers.Active.ToString())
+        if (request.Status != "Banned" && 
+            request.Status != "Active")
         {
             throw new Exception($"Không thể update status {request.Status}");
         }
@@ -164,7 +160,7 @@ public class Service: IService
         {
             throw new Exception("User không tồn tại");
         }
-        if (user.Role == Enum.Enum.Role.Customer.ToString())
+        if (user.Role == "Customer")
         {
             if (user.Status == request.Status)
             {
@@ -172,25 +168,25 @@ public class Service: IService
             }
             var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(x => x.UserId == request.Id);
             var customer = await _dbContext.Customers.FirstOrDefaultAsync(x => x.UserId == request.Id);
-            if (wallet != null && request.Status == Enum.Enum.StatusUsers.Banned.ToString())
+            if (wallet != null && request.Status == "Banned")
             {
                 wallet.IsDeleted = true;
                 wallet.UpdatedAt = DateTimeOffset.UtcNow;
                 _dbContext.Wallets.Update(wallet);
             }
-            if (wallet != null && request.Status == Enum.Enum.StatusUsers.Active.ToString())
+            if (wallet != null && request.Status == "Active")
             {
                 wallet.IsDeleted = false;
                 wallet.UpdatedAt = DateTimeOffset.UtcNow;
                 _dbContext.Wallets.Update(wallet);
             }
-            if (customer != null && request.Status == Enum.Enum.StatusUsers.Banned.ToString())
+            if (customer != null && request.Status == "Banned")
             {
                 customer.IsDeleted = true;
                 customer.UpdatedAt = DateTimeOffset.UtcNow;
                 _dbContext.Customers.Update(customer);
             }
-            if (customer != null && request.Status == Enum.Enum.StatusUsers.Active.ToString())
+            if (customer != null && request.Status == "Active")
             {
                 customer.IsDeleted = false;
                 customer.UpdatedAt = DateTimeOffset.UtcNow;
@@ -202,7 +198,7 @@ public class Service: IService
             await _dbContext.SaveChangesAsync();
             return;
         }
-        if (user.Role == Enum.Enum.Role.Owner.ToString() && request.Status == Enum.Enum.StatusUsers.Banned.ToString())
+        if (user.Role == "Owner" && request.Status == "Banned")
         {
             if (user.Status == request.Status)
             {
@@ -309,7 +305,7 @@ public class Service: IService
             await _dbContext.SaveChangesAsync();
             return;
         }
-        if (user.Role == Enum.Enum.Role.Owner.ToString() && request.Status == Enum.Enum.StatusUsers.Active.ToString())
+        if (user.Role == "Owner" && request.Status == "Active")
         {
             if (user.Status == request.Status)
             {
@@ -433,10 +429,10 @@ public class Service: IService
         if (request.Search != null)
         {
             query = query.Where(x => 
-                x.BusinessName.Contains(request.Search) ||
-                x.BusinessAddress.Contains(request.Search) ||
-                x.IdentityNumber.Contains(request.Search) ||
-                x.TaxCode.Contains(request.Search));
+                x.BusinessName.Trim().ToLower().Contains(request.Search.Trim().ToLower()) ||
+                x.BusinessAddress.Trim().ToLower().Contains(request.Search.Trim().ToLower()) ||
+                x.IdentityNumber.Trim().ToLower().Contains(request.Search.Trim().ToLower()) ||
+                x.TaxCode.Trim().ToLower().Contains(request.Search.Trim().ToLower()));
         }
 
         var total = await query.CountAsync();
@@ -446,7 +442,7 @@ public class Service: IService
             .Skip((request.PageIndex - 1) * request.PageSize)
             .Take(request.PageSize);
 
-        var selectOwenerRequest = query.Select(x => new Response.AdminGetOwnerRequestResponse()
+        var selectOwnerRequest = query.Select(x => new Response.AdminGetOwnerRequestResponse()
         {
             Id = x.Id,
             UserId = x.Customer.UserId,
@@ -468,7 +464,7 @@ public class Service: IService
             AvatarUrl = x.Customer.User.AvatarUrl,
         });
 
-        var listOwnerRequest = await selectOwenerRequest.ToListAsync();
+        var listOwnerRequest = await selectOwnerRequest.ToListAsync();
 
         var result = new Base.Response.PageResult<Response.AdminGetOwnerRequestResponse>()
         {
@@ -479,10 +475,11 @@ public class Service: IService
         };
         return result;
     }
-
     public async Task<string> AdminApprovedOwnerRequest(Guid ownerRequestId)
     {
-        var query = await _dbContext.OwnerRequests.Include(ownerRequest => ownerRequest.Customer).FirstOrDefaultAsync(x => x.Id == ownerRequestId);
+        var query = await _dbContext.OwnerRequests
+            .Include(ownerRequest => ownerRequest.Customer)
+            .FirstOrDefaultAsync(x => x.Id == ownerRequestId);
         if (query!.Status != "Pending")
         {
             throw new Exception("Error 500");
@@ -531,10 +528,11 @@ public class Service: IService
         }
         return "Fail";
     }
-
     public async Task<string> AdminRejectOwnerRequest(Guid ownerRequestId, string? rejectReason)
     {
-        var query = await _dbContext.OwnerRequests.Include(ownerRequest => ownerRequest.Customer).FirstOrDefaultAsync(x => x.Id == ownerRequestId);
+        var query = await _dbContext.OwnerRequests
+            .Include(ownerRequest => ownerRequest.Customer)
+            .FirstOrDefaultAsync(x => x.Id == ownerRequestId);
         if (query!.Status != "Pending")
         {
             throw new Exception("Error 500");
@@ -548,7 +546,7 @@ public class Service: IService
         query.UpdatedAt = DateTimeOffset.UtcNow;
         var result = await _dbContext.SaveChangesAsync();
         //gửi mail
-        var subject = "Người tình trong mộng Ralluhub";
+        var subject = "Người tình trong mộng RallyHub";
         var bodyMail = "Cảm ơn bạn đã gửi hồ sơ đăng ký đối tác cho rallyhub.<br>" +
                        "Tuy nhiên, sau khi xem xét, chúng tôi chưa thể duyệt hồ sơ của bạn vào lúc này.";
         await _mailService.SendMail(new MailContent()
@@ -575,49 +573,48 @@ public class Service: IService
         await _dbContext.SaveChangesAsync();
     }
     
-    public async Task<Base.Response.PageResult<Response.GetPendingCourtsResponse>> GetPendingCourts  
-    (Request.GetPendingCourtsRequest request)  
-{  
-    if (request.PageIndex <= 0)  
-    {        
-        throw new ArgumentException("PageIndex must be greater than 0");  
+    public async Task<Base.Response.PageResult<Response.AdminGetPendingCourtsResponse>> AdminGetPendingCourts (Base.Request.Pagination request)
+    {  
+        var query = _dbContext.Courts
+            .Include(x => x.Owner)
+            .Where(x => x.Status == "Pending");
+        if (request.Id != null)
+        {
+            query = query.Where(x => x.Id == request.Id);
+        }
+        if (request.Search != null)   
+        {        
+            query = query.Where(x =>   
+                x.Name.Trim().ToLower()  
+                    .Contains(request.Search.Trim().ToLower()));  
+        }    
+        var totalItems = await query.CountAsync();  
+            query = query.OrderBy(x => x.Name);  
+            query = query
+                .Skip((request.PageIndex - 1) * request.PageSize)  
+                .Take(request.PageSize);  
+      
+        var result = query.Select(x => new Response.AdminGetPendingCourtsResponse()  
+        {  
+            CourtId =  x.Id,  
+            OwnerId =  x.OwnerId,  
+            OwnerName = x.Owner.BusinessName,
+            Name = x.Name,  
+            Status = x.Status,  
+            Address = x.Address,
+            OpenTime = x.OpenTime,
+            CloseTime = x.CloseTime,
+            PictureUrl = x.PictureUrl,
+        });  
+        var listResult = await result.ToListAsync();  
+        return new Base.Response.PageResult<Response.AdminGetPendingCourtsResponse>()  
+        {  
+            Items = listResult,  
+            PageIndex = request.PageIndex,  
+            PageSize = request.PageSize,  
+            TotalItems = totalItems,  
+        };  
     }  
-    if (request.PageSize <= 0)  
-    {        
-        throw new ArgumentException("PageSize must be greater than 0");  
-    }    
-    var query = _dbContext.Courts.Where(x => x.Status == nameof(StatusCreateCourt.Pending));  
-    if (!string.IsNullOrEmpty(request.Name))  
-    {        query = query.Where(x =>   
-            x.Name.Trim().ToLower()  
-                .Contains(request.Name.Trim().ToLower()));  
-    }    var totalItems = await query.CountAsync();  
-    query = query.OrderBy(x => x.Name);  
-    query = query        .Skip((request.PageIndex - 1) * request.PageSize)  
-        .Take(request.PageSize);  
-  
-    var queryWithInclude = query.Include(x => x.Owner);
-    var result = queryWithInclude.Select(x => new Response.GetPendingCourtsResponse()  
-    {  
-        CourtId =  x.Id,  
-        OwnerId =  x.OwnerId,  
-        OwnerName = x.Owner.BusinessName,
-        Name = x.Name,  
-        Status = x.Status,  
-        Address = x.Address,
-        OpenTime = x.OpenTime,
-        CloseTime = x.CloseTime,
-        PictureUrl = x.PictureUrl,
-    });  
-    var listResult = await result.ToListAsync();  
-    return new Base.Response.PageResult<Response.GetPendingCourtsResponse>()  
-    {  
-        Items = listResult,  
-        PageIndex = request.PageIndex,  
-        PageSize = request.PageSize,  
-        TotalItems = totalItems,  
-    };  
-}  
   
     public async Task ApprovePendingCourt(Guid courtId)  
     {  

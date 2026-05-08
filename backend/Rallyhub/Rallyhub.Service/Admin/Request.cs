@@ -8,20 +8,6 @@ public class Request
         public string Status { get; set; }
     }
     
-    public class GetMyCourtsRequest  
-    {  
-        public string? Name { get; set; }  
-        public int PageIndex { get; set; } = 1;   
-        public int PageSize { get; set; } = 10;  
-    }
-
-    public class GetPendingCourtsRequest  
-    {  
-        public string? Name { get; set; }  
-        public int PageIndex { get; set; } = 1;   
-        public int PageSize { get; set; } = 10;  
-    }  
-  
     public class RejectPendingCourtsRequest  
     {  
         public required string Reason { get; set; }  
@@ -44,14 +30,12 @@ public class Request
         public required decimal Amount { get; set; }
     }
 
-    public class FilterUserRequest
+    public class FilterUserRequest: Base.Request.PagingRequest
     {
         public string? Search  { get; set; }
         public Guid? Id   { get; set; }
-        public Enum.Enum.Role? Role  { get; set; }
-        public Enum.Enum.StatusUsers? Status  { get; set; }
-        public int PageIndex  { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
+        public string? Role  { get; set; }
+        public string? Status  { get; set; }
     }
 
     public class UserDetailRequest

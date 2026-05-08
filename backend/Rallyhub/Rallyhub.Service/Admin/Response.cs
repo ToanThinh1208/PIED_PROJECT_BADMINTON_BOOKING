@@ -68,10 +68,10 @@ public class Response
         public string? Status { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
     }
-    public class GetPendingCourtsResponse  
+    public class AdminGetPendingCourtsResponse  
     {  
-        public Guid CourtId { get; set; }  
         public Guid OwnerId { get; set; }  
+        public Guid CourtId { get; set; }  
         public string OwnerName { get; set; } = null!;
         public string Name { get; set; } = null!;  
         public string Status { get; set; } = null!;  
