@@ -8,7 +8,7 @@ export const useMe = () => {
   const { accessToken, role, setAuth, logout } = useAuthStore();
 
   const query = useQuery({
-    queryKey: QUERY_KEYS.ME,
+    queryKey: [...QUERY_KEYS.ME, accessToken],
     queryFn: () => profileService.getMe(),
     enabled: !!accessToken, // Chỉ gọi khi đã có token
     staleTime: 1000 * 60 * 5, // Dữ liệu được coi là tươi trong 5 phút

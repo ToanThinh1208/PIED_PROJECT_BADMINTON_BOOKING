@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useOwnerCourts } from "../hooks/useOwnerCourts";
 import { CreateCourtDialog } from "../components/CreateCourtDialog";
-import { CourtCard } from "../components/CourtCard";
 import { Input } from "@/shared/components/ui/input";
-import { Search, LayoutGrid, List as ListIcon, Loader2, MapPin, Clock, Info } from "lucide-react";
+import { Search, LayoutGrid, List as ListIcon, Loader2, MapPin, Clock, Info, Eye } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import {
   Table,
@@ -96,7 +95,7 @@ export default function OwnerCourtsPage() {
             <TableBody>
               {data.items.map((court) => (
                 <TableRow 
-                  key={court.id} 
+                  key={court.courtId} 
                   className="cursor-pointer hover:bg-gray-50/50 transition-colors"
                   onClick={() => setSelectedCourt(court)}
                 >
@@ -115,12 +114,20 @@ export default function OwnerCourtsPage() {
                   <TableCell className="font-bold text-gray-900">{court.name}</TableCell>
                   <TableCell className="max-w-[300px] truncate text-gray-500">{court.address}</TableCell>
                   <TableCell className="text-gray-600 font-medium">
-                    {court.openTime} - {court.closeTime}
+                    {court.startTime} - {court.endTime}
                   </TableCell>
                   <TableCell>{getStatusBadge(court.status)}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-emerald-50 hover:text-emerald-600">
-                      <Info size={18} />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="rounded-full h-9 w-9 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCourt(court);
+                      }}
+                    >
+                      <Eye size={18} />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -176,16 +183,37 @@ export default function OwnerCourtsPage() {
                     <Clock className="text-emerald-600 shrink-0" size={20} />
                     <div>
                       <p className="text-sm font-bold text-gray-900 mb-1">Giờ hoạt động</p>
-                      <p className="text-sm text-gray-500">{selectedCourt.openTime} - {selectedCourt.closeTime}</p>
+                      <p className="text-sm text-gray-500">{selectedCourt.startTime} - {selectedCourt.endTime}</p>
                     </div>
                   </div>
+
+                  {selectedCourt.mapUrl && (
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
+                      <MapPin className="text-emerald-600 shrink-0" size={20} />
+                      <div className="flex-1 overflow-hidden">
+                        <p className="text-sm font-bold text-gray-900 mb-1">Google Maps</p>
+                        <a 
+                          href={selectedCourt.mapUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-emerald-600 hover:underline truncate block"
+                        >
+                          {selectedCourt.mapUrl}
+                        </a>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-8 flex gap-3">
                   <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-12 font-bold">
                     Cập nhật thông tin
                   </Button>
-                  <Button variant="outline" className="flex-1 rounded-xl h-12 font-bold border-gray-200">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 rounded-xl h-12 font-bold border-gray-200"
+                    onClick={() => setSelectedCourt(null)}
+                  >
                     Đóng
                   </Button>
                 </div>

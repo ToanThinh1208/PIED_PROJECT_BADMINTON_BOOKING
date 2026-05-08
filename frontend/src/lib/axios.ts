@@ -201,9 +201,11 @@ apiClient.interceptors.response.use(
 
     // Normalize error message từ server
     // BE thường trả về: { message: "...", statusCode: 400, ... }
+    // Nếu có lỗi nghiệp vụ cụ thể (vd trùng slot), BE nhét vào errors.originalMessage
     const message =
+      error.response?.data?.errors?.originalMessage ||
       error.response?.data?.message || 
-      error.response?.data?.Message || // Case sensitive fallback
+      error.response?.data?.Message || 
       error.message || 
       "Đã có lỗi xảy ra";
 
