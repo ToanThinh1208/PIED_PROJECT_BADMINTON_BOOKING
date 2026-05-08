@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Rallyhub.Repository;
 
@@ -6,9 +7,11 @@ namespace Rallyhub.Service.Transaction;
 public abstract class Service : IService
 {
     private readonly AppDbContext _dbContext;
-    public  Service(AppDbContext dbContext)
+    private readonly IHttpContextAccessor _httpAccessor;
+    public  Service(AppDbContext dbContext, IHttpContextAccessor  httpAccessor)
     {
         _dbContext = dbContext;
+        _httpAccessor = httpAccessor;
     }
 
     public async Task<bool> CheckTotalTransactions(Guid userId)
@@ -112,5 +115,101 @@ public abstract class Service : IService
             return true;
         }
         return false;
+    }
+
+    public async Task<Base.Response.PageResult<Response.GetTransactionResponse>> GetTransactionResponse(Base.Request.PagingDay paginDay)
+    {
+        var userId = _httpAccessor.HttpContext.User.Claims.Where(x => x.Type == "UserId").FirstOrDefault()?.Value;
+        var userIdGGuild = Guid.Parse(userId!);
+        var user =  await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userIdGGuild);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+        var query =  _dbContext.Transactions.Where(x => x.Wallet.UserId == userIdGGuild && x.Status == "Success");
+        if (paginDay.Date != null)
+        {
+            query = query.Where(x => DateOnly.FromDateTime(x.CreatedAt.Date) == paginDay.Date);
+        }
+        var total = await query.CountAsync();
+        query = query.OrderBy(x => x.CreatedAt);
+        query = query
+            .Skip((paginDay.PageIndex - 1) * paginDay.PageSize)
+            .Take(paginDay.PageSize);
+
+        var selectQuery = query.Select(x => new Response.GetTransactionResponse()
+        {
+            Id = x.Id,
+            Type = x.Type,
+            Amount = x.Amount,
+            BankRefCode = x.BankRefCode,
+            BankAccountNumber = x.BankAccountNumber,
+            Status = x.Status,
+            BookingId = x.BookingId,
+        });
+        var listTransaction = await selectQuery.ToListAsync();
+        var result = new Base.Response.PageResult<Response.GetTransactionResponse>()
+        {
+            Items = listTransaction,
+            PageIndex = paginDay.PageIndex,
+            PageSize = paginDay.PageSize,
+            TotalItems = total,
+        };
+        return result;
+    }
+
+    public async Task<Base.Response.PageResult<Response.AdminGetTransactionResponse>> AdminGetTransactionResponse(Guid? userId, Base.Request.PagingDay paginDay)
+    {
+        var query =  _dbContext.Transactions.Where(x => true);
+        if (userId != null)
+        {
+            query = _dbContext.Transactions.Where(x => x.Wallet.UserId == userId);
+        }
+        if (paginDay.Search != null)
+        {
+            query = _dbContext.Transactions.Where(x => x.Wallet.User.Email == paginDay.Search);
+        }
+        if (paginDay.Date != null)
+        {
+            query = query.Where(x => DateOnly.FromDateTime(x.CreatedAt.Date) == paginDay.Date);
+        }
+        var total = await query.CountAsync();
+        query = query.OrderBy(x => x.Status == "Pending").ThenBy(x => x.CreatedAt);
+        query = query
+            .Skip((paginDay.PageIndex - 1) * paginDay.PageSize)
+            .Take(paginDay.PageSize);
+
+        var selectQuery = query.Select(x => new Response.AdminGetTransactionResponse()
+        {
+            Id = x.Id,
+            Type = x.Type,
+            Amount = x.Amount,
+            Mail = x.Wallet.User.Email,
+            FirstName = x.Wallet.User.FirstName,
+            LastName = x.Wallet.User.LastName,
+            AvatarUrl =  x.Wallet.User.AvatarUrl,
+            BalanceBefore =  x.BalanceBefore,
+            BalanceAfter =  x.BalanceAfter,
+            SePayId =  x.SePayId,
+            BankRefCode = x.BankRefCode,
+            BankAccountNumber = x.BankAccountNumber,
+            TransferContent = x.TransferContent,
+            Status = x.Status,
+            ActionCode =  x.ActionCode,
+            Signature =  x.Signature,
+            BookingId = x.BookingId,
+            WalletId =  x.WalletId,
+            CreatedAt =  x.CreatedAt,
+            UpdatedAt =  x.UpdatedAt,
+        });
+        var listTransaction = await selectQuery.ToListAsync();
+        var result = new Base.Response.PageResult<Response.AdminGetTransactionResponse>()
+        {
+            Items = listTransaction,
+            PageIndex = paginDay.PageIndex,
+            PageSize = paginDay.PageSize,
+            TotalItems = total,
+        };
+        return result;
     }
 }

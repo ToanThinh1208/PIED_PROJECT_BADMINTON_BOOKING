@@ -7,7 +7,7 @@ using Rallyhub.Service.Models;
 namespace Rallyhub.Api.Controllers;
 
 [Authorize(Policy = JwtExtensions.AdminPolicy)]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class AdminController: ControllerBase
 {
     private readonly IService _adminService;

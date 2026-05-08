@@ -10,7 +10,7 @@ namespace Rallyhub.Api.Controllers;
 
 [ApiController]
 [Authorize(Policy = JwtExtensions.CustomerPolicy)]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class CustomerController : ControllerBase
 {
     private readonly IService _customerService;

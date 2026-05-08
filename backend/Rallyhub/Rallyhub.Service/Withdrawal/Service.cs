@@ -58,7 +58,7 @@ public class Service : IService
         return "Success create withdrawal";
     }
 
-    public async Task<Base.Response.PageResult<Response.GetWithdrawalResponse>> AdminGetWithdrawalRequest(Request.GetWithdrawalRequest request, Base.Request.Pagination pagination)
+    public async Task<Base.Response.PageResult<Response.GetWithdrawalResponse>> AdminGetWithdrawalRequest(Guid? userId, Base.Request.PagingDay pagination)
     {
         var withdrawals = _dbcontext.Withdrawals.Where(x => x.Status == "Pending");
         if (pagination.Id != null)
@@ -69,17 +69,13 @@ public class Service : IService
         {
             withdrawals = withdrawals.Where(x => x.Wallet.User.Email.Contains(pagination.Search));
         }
-        if (request.UserId != null)
+        if (userId != null)
         {
-            withdrawals = withdrawals.Where(x => x.Wallet.UserId ==  request.UserId);
+            withdrawals = withdrawals.Where(x => x.Wallet.UserId ==  userId);
         }
-        if (request.CreatedAt != null)
+        if (pagination.Date != null)
         {
-            var targetDate = request.CreatedAt.Value.Date;
-            var timeZoneOffset = TimeSpan.FromHours(7); 
-            var startDate = new DateTimeOffset(targetDate, timeZoneOffset);
-            var endDate = startDate.AddDays(1);
-            withdrawals = withdrawals.Where(x => x.CreatedAt >= startDate && x.CreatedAt < endDate);
+            withdrawals = withdrawals.Where(x => DateOnly.FromDateTime(x.CreatedAt.Date) == pagination.Date);
         }
         var total = await withdrawals.CountAsync();
         withdrawals = withdrawals.OrderBy(x => x.CreatedAt);
@@ -181,7 +177,7 @@ public class Service : IService
         return "Success rejected withdrawal";
     }
 
-    public async Task<Base.Response.PageResult<Response.UsergetWithdrawalResponse>> GetWithdrawalRequest(Base.Request.Pagination pagination)
+    public async Task<Base.Response.PageResult<Response.UsergetWithdrawalResponse>> GetWithdrawalRequest(Base.Request.PagingDay pagination)
     {
         var userId = _httpAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "UserId")!.Value;
         var userIdGuild = Guid.Parse(userId);
@@ -199,6 +195,10 @@ public class Service : IService
         if (withdrawalRequest == null)
         {
             throw new Exception("Withdrawal not found");
+        }
+        if (pagination.Date != null)
+        {
+            withdrawalRequest = withdrawalRequest.Where(x => DateOnly.FromDateTime(x.CreatedAt.Date) == pagination.Date);
         }
         withdrawalRequest = withdrawalRequest.OrderByDescending(x => x.Status).ThenBy(x => x.CreatedAt);
         var total = withdrawalRequest.Count();

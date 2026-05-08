@@ -7,7 +7,7 @@ using Rallyhub.Service.Models;
 namespace Rallyhub.Api.Controllers;
 
 [Authorize(Policy = JwtExtensions.CustomerPolicy)]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class BookingController: ControllerBase
 {
     private readonly IService _bookingService;
