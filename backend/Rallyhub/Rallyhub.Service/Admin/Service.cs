@@ -152,7 +152,7 @@ public class Service: IService
             };
             return result;
         }
-        throw new Exception("Không có quyền xem user admin");
+        throw new Exception("Không có quyền xem user ");
     }
     public async Task BanAndUnbanUser(Request.BanAndUnbanUserRequest request)
     {

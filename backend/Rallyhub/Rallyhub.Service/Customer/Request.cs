@@ -19,7 +19,7 @@ public class Request
 
     public class CancelBooking
     {
-        public Guid? BookingDetailId  { get; set; }
+        public Guid BookingId  { get; set; }
     }
 
     public class AddCourtLikeListRequest

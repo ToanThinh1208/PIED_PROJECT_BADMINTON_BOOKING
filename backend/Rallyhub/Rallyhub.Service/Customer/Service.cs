@@ -106,43 +106,63 @@ public class Service : IService
         };
         return result;
     }
-    public async Task<bool> CheckCancelBooking(Request.CancelBooking request)
+    //Admin refund: Hùng check
+   /* public async Task<bool> CheckCancelBooking(Request.CancelBooking request)
     {
         var getCustomerId = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
-        var customerId = Guid.Parse(getCustomerId!);
-        var bookingDetail = await _dbContext.BookingDetails
-            .Include(x => x.Booking)
-            .FirstOrDefaultAsync(x => x.Id == request.BookingDetailId && x.Booking.CustomerId == customerId);
-        if (bookingDetail == null)
+        if (getCustomerId == null)
         {
-            throw new Exception("Không tìm thấy");
+            throw new Exception("Customer không tồn tại");
         }
-        var timeCurrent = DateTime.Now; 
-        var bookingDateTime = bookingDetail.Date.Date.Add(bookingDetail.StartTime.ToTimeSpan());
-        var timeRemaining = bookingDateTime - timeCurrent;
-        if (timeRemaining < TimeSpan.FromHours(2))
+        var customerId = Guid.Parse(getCustomerId);
+        
+        var booking = await _dbContext.Bookings
+            .Include(x => x.BookingDetails)
+                .ThenInclude(x => x.SubCourt)
+                    .ThenInclude(x => x.Court)
+            .FirstOrDefaultAsync(x => 
+                x.Id == request.BookingId && x.CustomerId == customerId);
+        if (booking == null)
         {
-            return false; 
+            throw new Exception("Không tìm thấy đơn đặt sân");
         }
-        return true; 
+        var earlierSlot = booking.BookingDetails.OrderBy(x => x.StartTime).First();
+        var refundDeadline = earlierSlot.Date.AddHours((double)-earlierSlot.SubCourt.Court.TimeRefundBefor!);
+        var timeNow = DateTimeOffset.UtcNow;
+        if (timeNow > refundDeadline)
+        {
+            return false;
+        }
+
+        return true;
     }
     public async Task CancelBooking(Request.CancelBooking request)
     {
         var getCustomerId = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
+        if (getCustomerId == null)
+        {
+            throw new Exception("User not found");
+        }
         var customerId = Guid.Parse(getCustomerId!);
         var checkCancelBooking = await CheckCancelBooking(request);
+        
         if (checkCancelBooking)
         {
-            var user = await _dbContext.Users.Include(x => x.Customer)
-                .FirstOrDefaultAsync(x => x.Customer!.Id == customerId);
+            var customer = await _dbContext.Customers
+                .Include(x => x.User)
+                .FirstOrDefaultAsync(x => x.Id == customerId);
+            if (customer == null)
+            {
+                throw new Exception("User không tồn tại trong hệ thống");
+            }
             await _mailService.SendMail(new MailContent()
             {
-                To = user.Email,
+                To = customer.User.Email,
                 Subject = "Welcom to Rallyhub",
                 Body = "Tiền sẽ được hoàn từ 3 - 5 ngày tính từ lúc hủy"
             });
             var bookingDetail = await _dbContext.BookingDetails
-                                                    .FirstOrDefaultAsync(x => x.Id == request.BookingDetailId);
+                .FirstOrDefaultAsync(x => x.Id == request.BookingDetailId);
             bookingDetail!.Status = "RefundPending";
             bookingDetail.UpdatedAt = DateTimeOffset.UtcNow;
             _dbContext.BookingDetails.Update(bookingDetail);
@@ -155,7 +175,7 @@ public class Service : IService
         bookingDetailQuery.UpdatedAt = DateTimeOffset.UtcNow;
         _dbContext.BookingDetails.Update(bookingDetailQuery);
         await _dbContext.SaveChangesAsync();
-    }
+    }*/
     public async Task<Base.Response.PageResult<Response.LikeListResponse>> GetAllLikeList(Base.Request.PagingRequest request)
     {
         var getCustomerId = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
