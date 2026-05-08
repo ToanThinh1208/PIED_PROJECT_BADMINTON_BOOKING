@@ -1,11 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Rallyhub.Api.Extention;
 using Rallyhub.Service.Models;
 using MapService = Rallyhub.Service.MapService;
 
 namespace Rallyhub.Api.Controllers;
 
-[ApiController]
-[Route("[controller]")]
+
+//[Authorize(Policy = JwtExtensions.CustomerPolicy)]
+[Route("api/[controller]")]
 public class MapController : ControllerBase
 {
     private readonly MapService.IService _mapService;
