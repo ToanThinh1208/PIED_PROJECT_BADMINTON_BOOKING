@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rallyhub.Api.Extention;
-using Rallyhub.Repository;
 using Rallyhub.Service.Admin;
 using Rallyhub.Service.Models;
-using Enum = Rallyhub.Service.Enum.Enum;
 
 namespace Rallyhub.Api.Controllers;
 

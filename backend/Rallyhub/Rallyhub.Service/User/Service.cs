@@ -89,7 +89,7 @@ public class Service : IService
             throw new Exception("không tìm thấy user");
         }
         var owner = await _dbContext.Owners.FirstOrDefaultAsync(x => x.UserId == user.Id);
-        if (user.Role == Enum.Enum.Role.Owner.ToString())
+        if (user.Role == "Owner")
         {
             return new Response.OwnerDto()
             {

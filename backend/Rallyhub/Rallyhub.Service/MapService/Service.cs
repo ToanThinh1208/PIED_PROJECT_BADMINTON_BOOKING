@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Rallyhub.Repository;
 using System.Text.Json;
 using System.Globalization;
-using StatusCourt = Rallyhub.Service.Enum.Enum.StatusCreateCourt;
 namespace Rallyhub.Service.MapService;
 
 public class Service : IService

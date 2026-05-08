@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Rallyhub.Repository;
 using Rallyhub.Repository.Entity;
 using Exception = System.Exception;
-using StatusCourt = Rallyhub.Service.Enum.Enum.StatusCreateCourt;
 namespace Rallyhub.Service.Owner;
 
 public class Service : IService

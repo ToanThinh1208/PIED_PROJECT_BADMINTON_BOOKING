@@ -54,7 +54,7 @@ public class Service : IService
             IdentityCardBackUrl = await _mediaService.UploadImageAsync(request.IdentityCardBackUrl),
             CreatedAt = DateTimeOffset.UtcNow,
             CustomerId = custmerIdGuild,
-            Status = Enum.Enum.AllStatus.Pending.ToString(),
+            Status = "Pending",
         };
         _dbContext.OwnerRequests.Add(ownerRequest);
         var result = await _dbContext.SaveChangesAsync();
@@ -143,7 +143,7 @@ public class Service : IService
             });
             var bookingDetail = await _dbContext.BookingDetails
                                                     .FirstOrDefaultAsync(x => x.Id == request.BookingDetailId);
-            bookingDetail!.Status = Enum.Enum.StatusBookingDetails.RefundPending.ToString();
+            bookingDetail!.Status = "RefundPending";
             bookingDetail.UpdatedAt = DateTimeOffset.UtcNow;
             _dbContext.BookingDetails.Update(bookingDetail);
             await _dbContext.SaveChangesAsync();
@@ -151,7 +151,7 @@ public class Service : IService
         }
         var bookingDetailQuery = await _dbContext.BookingDetails
                                                 .FirstOrDefaultAsync(x => x.Id == request.BookingDetailId);
-        bookingDetailQuery!.Status = Enum.Enum.StatusBookingDetails.Cancelled.ToString();
+        bookingDetailQuery!.Status = "Cancelled";
         bookingDetailQuery.UpdatedAt = DateTimeOffset.UtcNow;
         _dbContext.BookingDetails.Update(bookingDetailQuery);
         await _dbContext.SaveChangesAsync();

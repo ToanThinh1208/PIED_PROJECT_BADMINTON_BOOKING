@@ -15,7 +15,7 @@ public class Service: IService
         _httpContext = httpContext;
     }
     
-     public async Task<List<Response.SlotResponse>> GetAvailableSlots(Request.GetAvailableSlotsRequest request)
+    public async Task<List<Response.SlotResponse>> GetAvailableSlots(Request.GetAvailableSlotsRequest request)
     {
         var subCourt = await _dbContext.SubCourts
             .Include(x => x.Court)
@@ -229,6 +229,7 @@ public class Service: IService
             QrCodeUrl = qrCodeUrl
         };
     }
+    
     public async Task<bool> SepayWebhookHandler(Request.SepayWebhookRequest request)
     {
         var description = request.Code;

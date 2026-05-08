@@ -62,12 +62,13 @@ public class Service : IService
     public async Task<Response.GetInfoWalletResponse> GetInforWallet()
     {
         var userIdGuild = Guid.Parse(_httpAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "UserId")!.Value);
-        var wallet = await _dbcontext.Wallets.Include(wallet => wallet.User).FirstOrDefaultAsync(x => x.UserId == userIdGuild);
+        var wallet = await _dbcontext.Wallets
+            .Include(wallet => wallet.User)
+            .FirstOrDefaultAsync(x => x.UserId == userIdGuild);
         if (wallet == null)
         {
             throw new Exception("Wallet not found");
         }
-
         var selectQuery = new Response.GetInfoWalletResponse()
         {
             Id = wallet.Id,
@@ -120,7 +121,7 @@ public class Service : IService
             {
                 break;
             }
-            case "Wallet":
+            case "wallet":
             {
                 if (wallet.BankName == null || wallet.BankAccount == null || wallet.BankAccountName == null)
                 {

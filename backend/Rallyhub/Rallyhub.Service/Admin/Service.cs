@@ -4,7 +4,6 @@ using Org.BouncyCastle.Ocsp;
 using Quartz.Util;
 using Rallyhub.Repository;
 using Rallyhub.Service.MailService;
-using StatusCreateCourt = Rallyhub.Service.Enum.Enum.StatusCreateCourt;
 namespace Rallyhub.Service.Admin;
 
 public class Service: IService
