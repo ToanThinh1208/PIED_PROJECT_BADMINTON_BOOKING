@@ -49,6 +49,13 @@ public class CustomerController : ControllerBase
     //     await _customerService.CancelBooking(request);
     //     return Ok(ApiResponseFactory.SuccessResponse("Success you!", HttpContext.TraceIdentifier));
     // }
+    
+    [HttpPatch("CancelBooking")]
+    public async Task<IActionResult> CancelBooking(Guid bookingId)
+    {
+        var result = await _customerService.CanCelBooking(bookingId);
+        return Ok(ApiResponseFactory.SuccessResponse(result,"Success you!", HttpContext.TraceIdentifier));
+    }
 
     [HttpGet("GetAllLikeList")]
     public async Task<IActionResult> GetAllLikeList([FromQuery] Service.Base.Request.PagingRequest request)

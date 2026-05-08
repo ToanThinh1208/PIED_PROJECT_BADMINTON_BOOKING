@@ -176,7 +176,44 @@ public class Service : IService
         _dbContext.BookingDetails.Update(bookingDetailQuery);
         await _dbContext.SaveChangesAsync();
     }*/
-    public async Task<Base.Response.PageResult<Response.LikeListResponse>> GetAllLikeList(Base.Request.PagingRequest request)
+
+   public async Task<string> CanCelBooking(Guid bookingId)
+   {
+       var customerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
+       if (customerIdClaim == null)
+       {
+           throw new Exception("Customer không tồn tại");
+       }
+       var customerId = Guid.Parse(customerIdClaim);
+       var customer = await _dbContext.Customers
+           .Include(x => x.User)
+           .FirstOrDefaultAsync(x => x.Id == customerId);
+       if (customer == null)
+       {
+           throw new Exception("Không tìm thấy Customer trong hệ thống");
+       }
+       
+       var pendingBooking = await _dbContext.Bookings
+           .Include(x => x.BookingDetails)
+           .FirstOrDefaultAsync(x => 
+               x.Id == bookingId && 
+               x.CustomerId == customer.Id
+               && x.Status == "Pending");
+       if (pendingBooking == null)
+       {
+           throw new Exception("Không thể hủy sân đã đặt");
+       }
+       pendingBooking.Status = "Cancelled";
+       _dbContext.Bookings.Update(pendingBooking);
+       foreach(var slots in pendingBooking.BookingDetails)
+       {
+            slots.Status = "Cancelled";           
+       }
+       
+       await  _dbContext.SaveChangesAsync();
+       return "Hủy đặt sân thành công";
+   }
+   public async Task<Base.Response.PageResult<Response.LikeListResponse>> GetAllLikeList(Base.Request.PagingRequest request)
     {
         var getCustomerId = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
         var customerId = Guid.Parse(getCustomerId!);

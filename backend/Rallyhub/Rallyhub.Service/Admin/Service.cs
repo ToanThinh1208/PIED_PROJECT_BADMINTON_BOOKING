@@ -704,7 +704,7 @@ public class Service: IService
             .FirstOrDefaultAsync(x => x.Id == request.BookingId);
         if (booking == null)
         {
-            throw new Exception("Không tìm thấy đơn đặt sân");
+            throw new Exception("Không tìm thấy đơn đã sân");
         }
         if (booking.Status != "Banked")
         {
