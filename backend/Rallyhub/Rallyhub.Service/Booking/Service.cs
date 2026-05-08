@@ -156,16 +156,34 @@ public class Service: IService
             availableSlots.First(x => 
                 x.StartTime == slot.StartTime &&
                 x.EndTime == slot.EndTime).Price);
+        //campain
+        decimal finalPrice =  totalPrice;
+        if (request.CampaignId != null)
+        {
+            var query = await _dbContext.Campaigns
+                .FirstOrDefaultAsync(c => 
+                    c.Id == request.CampaignId &&
+                    c.Code == request.Code &&
+                    c.StartDate <= request.Date.ToDateTime(TimeOnly.MinValue) &&
+                    c.EndDate >= request.Date.ToDateTime(TimeOnly.MinValue));
+            if (query != null)
+            {
+                throw new Exception("Campaign không tồn tại trong hệ thống");
+            }
 
+            finalPrice = totalPrice * (1 - query!.DiscountPercent / 100);
+            if (finalPrice <= 0) finalPrice = 0;
+        }
+        
         var booking = new Repository.Entity.Booking
         {
             Id = Guid.NewGuid(),
             CustomerId = customerId,
             TotalPrice = totalPrice,
-            FinalPrice = totalPrice,
+            FinalPrice = finalPrice,
             Status = "Pending",
             ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(30),
-            CampaignId = null
+            CampaignId = request.CampaignId,
         };
         
         var bookingDetails = request.Slots.Select(slot => new Repository.Entity.BookingDetail

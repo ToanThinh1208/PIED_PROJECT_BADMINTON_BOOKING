@@ -16,6 +16,8 @@ public class Request
     {
         public Guid SubCourtId { get; set; }
         public DateOnly Date { get; set; }
+        public string? Code {get; set;}
+        public Guid? CampaignId { get; set; }
         public List<SlotRequest> Slots { get; set; } = new();
     }
     
