@@ -675,8 +675,9 @@ public class Service: IService
     }
     public async Task<Response.RefundResponse> Refund(Request.RefundRequest request)
     {
-        var user = await _dbContext.Users.Include(x => x.Customer)
-                                .FirstOrDefaultAsync(x => x.Customer!.Id == request.CustomerId);
+        var user = await _dbContext.Users
+            .Include(x => x.Customer)
+            .FirstOrDefaultAsync(x => x.Customer!.Id == request.CustomerId);
         if (user == null)
         {
             throw new Exception("Không tìm thấy user");
@@ -688,11 +689,11 @@ public class Service: IService
             throw new Exception("Không tìm thấy  booking detail");
         }
 
-        if (bookingDetail.Status == Enum.Enum.StatusBookingDetails.Refunded.ToString())
+        if (bookingDetail.Status == "Refunded")
         {
             throw new Exception("Đã hoàn tiền rồi");
         }
-        bookingDetail.Status = Enum.Enum.StatusBookingDetails.Refunded.ToString();
+        bookingDetail.Status = "Refunded";
         bookingDetail.UpdatedAt = DateTimeOffset.UtcNow;
         _dbContext.BookingDetails.Update(bookingDetail);
         await _dbContext.SaveChangesAsync();
@@ -709,10 +710,9 @@ public class Service: IService
             ImageUrl = request.ImageUrl
         };
     }
-    
     public async Task<Response.GetWalletResponse> GetWallet(Request.GetWalletRequest request)
     {
-        if(request.Email == null || request.Email == "")
+        if(request.Email == null)
         {
             throw new Exception("Email không hợp lệ");
         }
@@ -776,12 +776,11 @@ public class Service: IService
 
 
     }
-
     public async Task<List<Response.GetBookingDetailStatusRefundPendingResponse>> GetBookingDetailStatusRefundPending()
     {
-        var bookingDetailStatusRefundPending =
-            _dbContext.BookingDetails.Include(x => x.Booking)
-                .Where(x => x.Status == Enum.Enum.StatusBookingDetails.RefundPending.ToString());
+        var bookingDetailStatusRefundPending = _dbContext.BookingDetails
+            .Include(x => x.Booking)
+            .Where(x => x.Status == "RefundPending");
         var selectQuery = bookingDetailStatusRefundPending
             .Select(x => new Response.GetBookingDetailStatusRefundPendingResponse()
             {
