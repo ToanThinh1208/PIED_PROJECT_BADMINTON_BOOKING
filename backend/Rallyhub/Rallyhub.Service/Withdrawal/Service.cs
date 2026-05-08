@@ -139,7 +139,9 @@ public class Service : IService
 
     public async Task<string> AdminRejectWithdrawalRequest(Guid withdrawalRequestId, string reason, string? note)
     {
-        var withdrawalRequest = await _dbcontext.Withdrawals.FirstOrDefaultAsync(x => x.Id == withdrawalRequestId);
+        var withdrawalRequest = await _dbcontext.Withdrawals
+            .FirstOrDefaultAsync(x => 
+                x.Id == withdrawalRequestId);
         if (withdrawalRequest == null)
         {
             throw new Exception("Withdrawal not found");

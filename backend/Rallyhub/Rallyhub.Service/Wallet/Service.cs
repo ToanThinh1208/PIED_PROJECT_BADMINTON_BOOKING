@@ -106,38 +106,90 @@ public class Service : IService
     {
         var customerIdClaim = _httpAccessor.HttpContext.User.Claims
             .FirstOrDefault(x => x.Type == "CustomerId")?.Value;
-        if (customerIdClaim == null)
+        var pendingTransaction = await _dbcontext.Transactions
+            .FirstOrDefaultAsync(x => x.Status == "Pending");
+        if (pendingTransaction != null)
         {
-            throw new Exception("Không tìm thấy thông tin của User");
-        }
-        var customerId = Guid.Parse(customerIdClaim);
+            if (pendingTransaction.Amount != requestAmount)
+            {
+                pendingTransaction.Amount = requestAmount;
+                _dbcontext.Transactions.Update(pendingTransaction);
+                await _dbcontext.SaveChangesAsync();
+            }
+            if (customerIdClaim == null)
+            {
+                throw new Exception("Không tìm thấy thông tin của User");
+            }
+            var customerId = Guid.Parse(customerIdClaim);
         
-        var existWallet = await _dbcontext.Wallets.FirstOrDefaultAsync(x => x.UserId == customerId);
-        if (existWallet == null)
+            var existWallet = await _dbcontext.Wallets.FirstOrDefaultAsync(x => x.UserId == customerId);
+            if (existWallet == null)
+            {
+                throw new Exception("Không tìm thấy ví");
+            }
+        
+            string bankName = "MBBank";
+            string bankAccount = "VQRQAIUZK3222";
+            string description = $"WA-{existWallet.Id:N}";
+        
+            string qrCodeUrl = $"https://qr.sepay.vn/img?" +
+                               $"acc={bankAccount}&" +
+                               $"bank={bankName}&" +
+                               $"amount={requestAmount}&" +
+                               $"des={description}&" +
+                               $"template=qronly";
+            
+            return new Response.AddBalanceToWalletFromPaymentResponse
+            {
+                Id = existWallet.Id,
+                Amount = requestAmount,
+                QrCodeUrl = qrCodeUrl,
+            };
+        }
+        else
         {
-            throw new Exception("Không tìm thấy ví");
-        }
+            if (customerIdClaim == null)
+            {
+                throw new Exception("Không tìm thấy thông tin của User");
+            }
+            var customerId = Guid.Parse(customerIdClaim);
         
-        string bankName = "MBBank";
-        string bankAccount = "VQRQAIUZK3222";
-        string description = $"WA-{existWallet.Id:N}";
+            var existWallet = await _dbcontext.Wallets.FirstOrDefaultAsync(x => x.UserId == customerId);
+            if (existWallet == null)
+            {
+                throw new Exception("Không tìm thấy ví");
+            }
         
-        string qrCodeUrl = $"https://qr.sepay.vn/img?" +
-                           $"acc={bankAccount}&" +
-                           $"bank={bankName}&" +
-                           $"amount={requestAmount}&" +
-                           $"des={description}&" +
-                           $"template=qronly";
+            string bankName = "MBBank";
+            string bankAccount = "VQRQAIUZK3222";
+            string description = $"WA-{existWallet.Id:N}";
+        
+            string qrCodeUrl = $"https://qr.sepay.vn/img?" +
+                               $"acc={bankAccount}&" +
+                               $"bank={bankName}&" +
+                               $"amount={requestAmount}&" +
+                               $"des={description}&" +
+                               $"template=qronly";
     
-        
-        //Transaction new 
-        
-        return new Response.AddBalanceToWalletFromPaymentResponse
-        {
-            Id = existWallet.Id,
-            Amount = requestAmount,
-            QrCodeUrl = qrCodeUrl,
-        };
+            var transactionI = new Transaction.Request.CreateTransactionRequest
+            {
+                Type = Transaction.Request.TypeList.Deposit,
+                Amount = requestAmount,
+                BalanceBefore = existWallet.Balance,
+                BalanceAfter =  existWallet.Balance + requestAmount,
+                Status = "Pending",
+                WalletId =  existWallet.Id,
+            };
+            _dbcontext.Add(transactionI);
+            await _dbcontext.SaveChangesAsync();
+
+            return new Response.AddBalanceToWalletFromPaymentResponse
+            {
+                Id = existWallet.Id,
+                Amount = requestAmount,
+                QrCodeUrl = qrCodeUrl,
+            };
+        }
     }
     public async Task<bool> AddBanlanceToWallet(Guid userId, decimal amount, string type)
     {
