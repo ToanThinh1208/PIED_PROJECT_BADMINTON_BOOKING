@@ -11,6 +11,7 @@ export interface PaginationMeta {
 export interface PaginatedResponse<T> {
   items: T[];
   totalItems: number;
+  totalPages: number;
   pageSize: number;
   pageIndex: number;
 }

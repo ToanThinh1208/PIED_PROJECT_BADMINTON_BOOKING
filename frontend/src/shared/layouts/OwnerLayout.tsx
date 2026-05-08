@@ -1,11 +1,12 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, NavLink } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Building2, 
   CalendarCheck, 
   Settings, 
   Menu,
-  Bell
+  Bell,
+  LayoutGrid
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/shared/components/ui/button";
@@ -16,15 +17,15 @@ import { useAuthStore } from "@/features/auth/store";
 
 const NAV_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/owner" },
-  { label: "Quản lý sân", icon: Building2, path: "/owner/courts" },
-  { label: "Lịch đặt sân", icon: CalendarCheck, path: "/owner/bookings" },
+  { label: "Quản lý cơ sở", icon: Building2, path: "/owner/courts" },
+  { label: "Quản lý sân con", icon: LayoutGrid, path: "/owner/sub-courts" },
+  { label: "Quản lý lịch sân", icon: CalendarCheck, path: "/owner/schedules" },
   { label: "Cài đặt", icon: Settings, path: "/owner/settings" },
 ];
 
 export default function OwnerLayout() {
   const { accessToken, user } = useAuthStore();
   const navigate = useNavigate();
-  const location = useLocation();
   const [isSidebarOpen, setSidebarOpen] = useState(true);
 
   // Đồng bộ hóa dữ liệu profile
@@ -66,24 +67,26 @@ export default function OwnerLayout() {
         </div>
 
         <nav className="flex-1 px-3 space-y-1 mt-4">
-          {NAV_ITEMS.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group",
-                  isActive 
-                    ? "bg-emerald-50 text-emerald-600 shadow-sm" 
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                )}
-              >
-                <item.icon size={20} className={cn("shrink-0", isActive ? "text-emerald-600" : "text-gray-400 group-hover:text-gray-900")} />
-                {isSidebarOpen && <span className="font-semibold text-sm">{item.label}</span>}
-              </button>
-            );
-          })}
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === "/owner"}
+              className={({ isActive }) => cn(
+                "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group",
+                isActive 
+                  ? "bg-emerald-50 text-emerald-600 shadow-sm" 
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+              )}
+            >
+              {({ isActive }) => (
+                <>
+                  <item.icon size={20} className={cn("shrink-0", isActive ? "text-emerald-600" : "text-gray-400 group-hover:text-gray-900")} />
+                  {isSidebarOpen && <span className="font-semibold text-sm">{item.label}</span>}
+                </>
+              )}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="p-8 mt-auto flex justify-center">

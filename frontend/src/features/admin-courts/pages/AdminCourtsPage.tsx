@@ -31,11 +31,11 @@ import {
 import type { PendingCourt } from "../types";
 
 export default function AdminCourtsPage() {
-  const [pageIndex, setPageIndex] = useState(1);
+  const [pageIndex] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCourt, setSelectedCourt] = useState<PendingCourt | null>(null);
+  const [viewingCourt, setViewingCourt] = useState<PendingCourt | null>(null);
+  const [rejectingCourt, setRejectingCourt] = useState<PendingCourt | null>(null);
   const [rejectReason, setRejectReason] = useState("");
-  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
 
   const { data, isLoading } = usePendingCourts({
     pageIndex,
@@ -47,25 +47,30 @@ export default function AdminCourtsPage() {
   const rejectMutation = useRejectCourt();
 
   const handleApprove = (courtId: string) => {
-    if (confirm("Bạn có chắc chắn muốn duyệt sân này?")) {
-      approveMutation.mutate(courtId);
-      setSelectedCourt(null);
-    }
+    // Instead of window.confirm, the UI can have its own confirmation if needed, 
+    // but for now I'll just make sure it closes the modal.
+    approveMutation.mutate(courtId, {
+      onSuccess: () => {
+        setViewingCourt(null);
+      }
+    });
   };
 
   const handleReject = () => {
     if (!rejectReason.trim()) {
-      alert("Vui lòng nhập lý do từ chối");
       return;
     }
-    if (selectedCourt) {
+    if (rejectingCourt) {
       rejectMutation.mutate({
-        courtId: selectedCourt.courtId,
+        courtId: rejectingCourt.courtId,
         data: { reason: rejectReason }
+      }, {
+        onSuccess: () => {
+          setRejectingCourt(null);
+          setViewingCourt(null); // Close detail too if it was open
+          setRejectReason("");
+        }
       });
-      setIsRejectDialogOpen(false);
-      setSelectedCourt(null);
-      setRejectReason("");
     }
   };
 
@@ -116,7 +121,7 @@ export default function AdminCourtsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.items.map((court) => (
+              {data.items.map((court: PendingCourt) => (
                 <TableRow key={court.courtId} className="group hover:bg-emerald-50/30 transition-all border-b border-gray-50 last:border-0">
                   <TableCell className="py-4 px-6">
                     <div className="w-20 h-14 rounded-xl overflow-hidden shadow-sm border border-white">
@@ -158,7 +163,7 @@ export default function AdminCourtsPage() {
                         size="sm" 
                         variant="ghost" 
                         className="rounded-xl h-10 w-10 p-0 hover:bg-white hover:shadow-md transition-all text-gray-400 hover:text-emerald-600"
-                        onClick={() => setSelectedCourt(court)}
+                        onClick={() => setViewingCourt(court)}
                       >
                         <Eye size={20} />
                       </Button>
@@ -166,17 +171,15 @@ export default function AdminCourtsPage() {
                         size="sm" 
                         className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-10 px-4 font-bold shadow-lg shadow-emerald-600/20"
                         onClick={() => handleApprove(court.courtId)}
+                        disabled={approveMutation.isPending}
                       >
-                        Duyệt
+                        {approveMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "Duyệt"}
                       </Button>
                       <Button 
                         size="sm" 
                         variant="outline" 
                         className="border-red-100 text-red-500 hover:bg-red-50 rounded-xl h-10 px-4 font-bold"
-                        onClick={() => {
-                          setSelectedCourt(court);
-                          setIsRejectDialogOpen(true);
-                        }}
+                        onClick={() => setRejectingCourt(court)}
                       >
                         Từ chối
                       </Button>
@@ -200,14 +203,14 @@ export default function AdminCourtsPage() {
       </div>
 
       {/* Details Dialog */}
-      <Dialog open={!!selectedCourt && !isRejectDialogOpen} onOpenChange={(open) => !open && setSelectedCourt(null)}>
+      <Dialog open={!!viewingCourt} onOpenChange={(open) => !open && setViewingCourt(null)}>
         <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden rounded-[2rem] border-none shadow-2xl">
-          {selectedCourt && (
+          {viewingCourt && (
             <>
               <div className="h-80 w-full relative group">
                 <img 
-                  src={selectedCourt.pictureUrl} 
-                  alt={selectedCourt.name} 
+                  src={viewingCourt.pictureUrl} 
+                  alt={viewingCourt.name} 
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = "https://placehold.co/800x400?text=Court+Image";
@@ -218,7 +221,7 @@ export default function AdminCourtsPage() {
                   <Badge className="mb-3 bg-emerald-500 hover:bg-emerald-500 text-white border-none px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
                     Yêu cầu chờ duyệt
                   </Badge>
-                  <h2 className="text-3xl font-black text-white">{selectedCourt.name}</h2>
+                  <h2 className="text-3xl font-black text-white">{viewingCourt.name}</h2>
                 </div>
               </div>
 
@@ -232,7 +235,7 @@ export default function AdminCourtsPage() {
                       <span className="font-black text-gray-900 text-xs uppercase tracking-wider">Vị trí</span>
                     </div>
                     <p className="text-sm text-gray-500 font-medium leading-relaxed">
-                      {selectedCourt.address}
+                      {viewingCourt.address}
                     </p>
                   </div>
                   <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100/50">
@@ -243,9 +246,9 @@ export default function AdminCourtsPage() {
                       <span className="font-black text-gray-900 text-xs uppercase tracking-wider">Hoạt động</span>
                     </div>
                     <p className="text-sm text-gray-500 font-medium">
-                      Mở cửa: <span className="text-gray-900 font-bold">{selectedCourt.openTime}</span>
+                      Mở cửa: <span className="text-gray-900 font-bold">{viewingCourt.openTime}</span>
                       <br />
-                      Đóng cửa: <span className="text-gray-900 font-bold">{selectedCourt.closeTime}</span>
+                      Đóng cửa: <span className="text-gray-900 font-bold">{viewingCourt.closeTime}</span>
                     </p>
                   </div>
                 </div>
@@ -257,7 +260,7 @@ export default function AdminCourtsPage() {
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-0.5">Chủ sở hữu</p>
-                      <p className="text-lg font-black text-gray-900">{selectedCourt.ownerName || "Không rõ chủ sở hữu"}</p>
+                      <p className="text-lg font-black text-gray-900">{viewingCourt.ownerName || "Không rõ chủ sở hữu"}</p>
                     </div>
                   </div>
                   <Button variant="ghost" className="text-emerald-600 font-bold hover:bg-white rounded-xl px-6">
@@ -268,14 +271,15 @@ export default function AdminCourtsPage() {
                 <div className="flex gap-4 pt-4">
                   <Button 
                     className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl h-14 text-base font-black shadow-xl shadow-emerald-600/20"
-                    onClick={() => handleApprove(selectedCourt.courtId)}
+                    onClick={() => handleApprove(viewingCourt.courtId)}
+                    disabled={approveMutation.isPending}
                   >
-                    Duyệt sân này
+                    {approveMutation.isPending ? <Loader2 className="animate-spin mr-2" /> : "Duyệt sân này"}
                   </Button>
                   <Button 
                     variant="outline" 
                     className="flex-1 border-red-100 text-red-500 hover:bg-red-50 rounded-2xl h-14 text-base font-black"
-                    onClick={() => setIsRejectDialogOpen(true)}
+                    onClick={() => setRejectingCourt(viewingCourt)}
                   >
                     Từ chối yêu cầu
                   </Button>
@@ -287,7 +291,7 @@ export default function AdminCourtsPage() {
       </Dialog>
 
       {/* Reject Reason Dialog */}
-      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+      <Dialog open={!!rejectingCourt} onOpenChange={(open) => !open && setRejectingCourt(null)}>
         <DialogContent className="sm:max-w-[450px] rounded-3xl p-8 border-none shadow-2xl">
           <DialogHeader>
             <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 mb-4 mx-auto">
@@ -308,13 +312,14 @@ export default function AdminCourtsPage() {
             <Button 
               className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl h-12 font-bold"
               onClick={handleReject}
+              disabled={rejectMutation.isPending}
             >
-              Xác nhận từ chối
+              {rejectMutation.isPending ? <Loader2 className="animate-spin mr-2" /> : "Xác nhận từ chối"}
             </Button>
             <Button 
               variant="ghost" 
               className="flex-1 rounded-xl h-12 font-bold text-gray-500"
-              onClick={() => setIsRejectDialogOpen(false)}
+              onClick={() => setRejectingCourt(null)}
             >
               Hủy bỏ
             </Button>

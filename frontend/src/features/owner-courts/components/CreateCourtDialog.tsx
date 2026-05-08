@@ -20,10 +20,10 @@ import {
 } from '@/shared/components/ui/form';
 import { createCourtSchema, type CreateCourtFormValues } from "../schema";
 import type { CreateCourtRequest } from "../types";
-import type { FieldPath } from "react-hook-form";
+
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
-import { PlusCircle, Upload, MapPin } from "lucide-react";
+import { PlusCircle, Upload } from "lucide-react";
 import { useState } from "react";
 
 export const CreateCourtDialog = () => {
