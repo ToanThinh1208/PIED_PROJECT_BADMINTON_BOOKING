@@ -104,6 +104,7 @@ public class Service: IService
     }
     public async Task<Response.CreateBookingResponse> CreateBooking(Request.ListAvailableSlots request)
     {
+        //thêm campaign
         var customerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
         if (customerIdClaim == null)
         {
@@ -184,12 +185,15 @@ public class Service: IService
         await _dbContext.Bookings.AddAsync(booking);
         await _dbContext.BookingDetails.AddRangeAsync(bookingDetails);
         await _dbContext.SaveChangesAsync();
+
+        string bankName = "MBBank";
+        string bankAccount = "VQRQAIUZK3222";
+        string description = $"RA-{booking.Id:N}";
         
-        string description = $"RALLYHUB-{booking.Id}";
         string qrCodeUrl = $"https://qr.sepay.vn/img?" +
-                           $"acc=0963518963&" +
-                           $"bank=MBBank&" +
-                           $"amount={(int)booking.FinalPrice}&" +
+                           $"acc={bankAccount}&" +
+                           $"bank={bankName}&" +
+                           $"amount={booking.FinalPrice}&" +
                            $"des={description}&" +
                            $"template=qronly";
         
@@ -207,5 +211,60 @@ public class Service: IService
             }).ToList(),
             QrCodeUrl = qrCodeUrl
         };
+    }
+    
+    public async Task<bool> SepayWebhookHandler(Request.SepayWebhookRequest request)
+    {
+        var description = request.Code;
+        var raw = description.Replace("RA", "");
+    
+        if (string.IsNullOrEmpty(raw) || raw.Length < 28)
+        {
+            throw new Exception("Error code");
+        }
+        var formatted = $"{raw.Substring(0, 8)}-" +
+                        $"{raw.Substring(8, 4)}-" +
+                        $"{raw.Substring(12, 4)}-" +
+                        $"{raw.Substring(16, 4)}-" +
+                        $"{raw.Substring(20, 10)}";
+        
+        Repository.Entity.Booking? targetBooking = null;
+
+        if (Guid.TryParse(formatted, out var exactGuid))
+        {
+            targetBooking = await _dbContext.Bookings
+                .Include(x => x.BookingDetails)
+                .FirstOrDefaultAsync(x => x.Id == exactGuid);
+        }
+
+        if (targetBooking == null)
+        {
+            targetBooking = await _dbContext.Bookings
+                .Include(x => x.BookingDetails)
+                .Where(x => EF.Functions.TrigramsSimilarity(x.Id.ToString(), formatted) > 0.68)
+                .OrderBy(x => EF.Functions.TrigramsSimilarityDistance(x.Id.ToString(), formatted))
+                .FirstOrDefaultAsync();
+        }
+        if (targetBooking == null)
+        {
+            throw new Exception("Not found");
+        }
+        if (targetBooking.Status != "Pending")
+        {
+            throw new Exception("Booking is completed");
+        }
+        if(targetBooking.FinalPrice != request.TransferAmount)
+        {
+            throw new Exception("Invalid transfer amount");
+        }
+        
+        targetBooking.Status = "Banked";
+        _dbContext.Update(targetBooking);
+        var result = await _dbContext.SaveChangesAsync();
+        if (result > 0)
+        {
+            return true;
+        }
+        return false;
     }
 }
