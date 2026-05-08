@@ -572,7 +572,6 @@ public class Service: IService
         _dbContext.Courts.Remove(court);
         await _dbContext.SaveChangesAsync();
     }
-    
     public async Task<Base.Response.PageResult<Response.AdminGetPendingCourtsResponse>> AdminGetPendingCourts (Base.Request.Pagination request)
     {  
         var query = _dbContext.Courts
@@ -615,22 +614,22 @@ public class Service: IService
             TotalItems = totalItems,  
         };  
     }  
-  
-    public async Task ApprovePendingCourt(Guid courtId)  
+    public async Task<string> AdminApprovePendingCourt(Guid courtId) 
     {  
         var court = await _dbContext.Courts
             .Include(x => x.Owner.User)
             .FirstOrDefaultAsync(x => x.Id == courtId);  
         if (court == null)  
         {        
-            throw new Exception("Court not found");  
+            throw new Exception("Error 500");  
         }  
-        if (court.Status != nameof(StatusCreateCourt.Pending))  
+        if (court.Status != "Pending")  
         {        
-            throw new Exception("Cannot approve court");  
+            throw new Exception("Error 500");  
         }        
-        court.Status = nameof(StatusCreateCourt.Active);  
-        await _dbContext.SaveChangesAsync();  
+        court.Status = "Active";  
+        court.UpdatedAt = DateTimeOffset.UtcNow;
+        int result = await _dbContext.SaveChangesAsync();  
         string htmlBody = MailTemplate.ApproveCourtTemplate(court.Owner.User.Email, court.Name);
         await _mailService.SendMail(new MailContent
         {
@@ -638,24 +637,29 @@ public class Service: IService
             Subject = "Approved court",
             Body = htmlBody,
         });
+        if (result > 0)
+        {
+            return "Success";
+        }
+        return "Fail";
     }  
-  
-    public async Task RejectPendingCourt(Guid courtId, Request.RejectPendingCourtsRequest request)  
+    public async Task<string> AdminRejectPendingCourt(Guid courtId, string? rejectReason)  
     {  
         var court = await _dbContext.Courts
             .Include(x => x.Owner.User)
             .FirstOrDefaultAsync(x => x.Id == courtId);  
         if (court == null)  
         {        
-            throw new Exception("Court not found");  
+            throw new Exception("Error 500");  
         }  
-        if (court.Status != nameof(StatusCreateCourt.Pending))  
+        if (court.Status != "Pending")  
         {        
-            throw new Exception("Cannot approve court");  
+            throw new Exception("Error 500");  
         }        
-        court.Status = nameof(StatusCreateCourt.Inactive);  
-        await _dbContext.SaveChangesAsync();  
-        string htmlBody = MailTemplate.RejectCourtTemplate(court.Owner.User.Email, court.Name, request.Reason);
+        court.Status = "InActive";          
+        court.UpdatedAt = DateTimeOffset.UtcNow;
+        var result = await _dbContext.SaveChangesAsync();  
+        string htmlBody = MailTemplate.RejectCourtTemplate(court.Owner.User.Email, court.Name, rejectReason!);
         // Console.WriteLine(court.Owner.User.Email);
         await _mailService.SendMail(new MailContent
         {
@@ -663,9 +667,12 @@ public class Service: IService
             Subject = "Rejected court", 
             Body = htmlBody,
         });  
-        
+        if (result > 0)
+        {
+            return "Success";
+        }
+        return "Fail";
     }
-    
     public async Task<Response.RefundResponse> Refund(Request.RefundRequest request)
     {
         var user = await _dbContext.Users.Include(x => x.Customer)

@@ -79,17 +79,17 @@ public class AdminController: ControllerBase
     }  
   
     [HttpPatch("RejectPendingCourt/{courtId}")]  
-    public async Task<IActionResult> RejectPendingCourt(Guid courtId, [FromBody] Request.RejectPendingCourtsRequest request)  
+    public async Task<IActionResult> AdminRejectPendingCourt(Guid courtId, string? resonReject)  
     {  
-        await _adminService.RejectPendingCourt(courtId, request);  
-        return Ok(ApiResponseFactory.SuccessResponse( "","Success you!", HttpContext.TraceIdentifier));  
+        var result = await _adminService.AdminRejectPendingCourt(courtId, resonReject);  
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success you!", HttpContext.TraceIdentifier));  
     }  
   
     [HttpPatch("ApprovePendingCourt/{courtId}")]  
-    public async Task<IActionResult> ApprovePendingCourt(Guid courtId)  
+    public async Task<IActionResult> AdminApprovePendingCourt(Guid courtId)  
     {  
-        await _adminService.ApprovePendingCourt(courtId);  
-        return Ok(ApiResponseFactory.SuccessResponse( "","Success you!"
+        var result = await _adminService.AdminApprovePendingCourt(courtId);  
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success you!"
             , HttpContext.TraceIdentifier));  
     }
 
