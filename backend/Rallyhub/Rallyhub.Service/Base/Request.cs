@@ -18,4 +18,9 @@ public class Request
     {
         public DateOnly? Date { get; set; }
     }
+
+    public class PagingDay2 : Pagination
+    {
+        public DateOnly? Date { get; set; }
+    }
 }

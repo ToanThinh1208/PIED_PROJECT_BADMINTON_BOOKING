@@ -468,4 +468,68 @@ public class Service: IService
         await  _dbContext.SaveChangesAsync();
         return "Hủy đặt sân thành công";
     }
+
+    public async Task<Response.GetBookingResponse> GetBooking(Base.Request.PagingDay2 pagingDay2)
+    {
+        var customerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
+        if (customerIdClaim == null)
+        {
+            throw new Exception("Không tìm thấy danh tính của Customer");
+        }
+        var customerId = Guid.Parse(customerIdClaim);
+        var user = _dbContext.Users
+            .Include(x => x.Customer)
+            .FirstOrDefaultAsync(x => x.Customer!.Id == customerId);
+        if (user == null)
+        {
+            throw new Exception("Không tìm thấy user trong hệ thống");
+        }
+        
+        var booking = _dbContext.Bookings
+            .Where(x => x.CustomerId == customerId);
+        
+        if (pagingDay2.Date != null)
+        {
+            booking = booking.Where(x => DateOnly.FromDateTime(x.CreatedAt.Date) == pagingDay2.Date);
+        }
+
+        booking = booking.OrderBy(x => 
+                x.Status == "Pending" ? 1 :
+                x.Status == "Banked" ? 2 :    
+                x.Status == "Refund" ? 3 :
+                x.Status == "Complete" ? 4 :
+                x.Status == "Cancel" ? 5 : 6) 
+            .ThenBy(x => x.CreatedAt);
+        var total = await booking.CountAsync();
+        booking = booking
+            .Skip((pagingDay2.PageIndex - 1) * pagingDay2.PageSize)
+            .Take(pagingDay2.PageSize);
+        var select = booking.Select(x => new Response.GetBookingResponse()
+        {
+            BookingId = x.Id,
+            FinalPrice = x.FinalPrice,
+            Status = x.Status,
+            CourtName = x.BookingDetails.First().SubCourt.Name,
+            Address = x.BookingDetails.First().SubCourt.Court.Address,
+            PhoneNumber =  x.BookingDetails.First().SubCourt.Court.Owner.User.PhoneNumber!,
+            UrlMap = x.BookingDetails.First().SubCourt.Court.MapUrl,
+            SlotsResponses = x.BookingDetails.Select(x => new Response.SlotsResponse
+            {
+                SlotId = x.Id,
+                StartTime = x.StartTime,
+                EndTime = x.EndTime,
+                Price = x.Price
+            }),
+        });
+        var list = await  select.ToListAsync();
+        var result = new Base.Response.PageResult<Response.GetBookingResponse>()
+        {
+            Items = list,
+            PageIndex = pagingDay2.PageIndex,
+            PageSize = pagingDay2.PageSize,
+            TotalItems = total
+        };
+        
+        throw new NotImplementedException();
+    }
 }
