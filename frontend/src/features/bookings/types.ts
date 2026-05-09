@@ -35,7 +35,7 @@ export interface GetBookingResponse {
   slotsResponses: SlotsResponse[];
   phoneNumber: string;
   urlMap: string;
-  date: string; // Added if missing from docs but likely present
+  date?: string; 
 }
 
 export interface BookingHistoryResponse {

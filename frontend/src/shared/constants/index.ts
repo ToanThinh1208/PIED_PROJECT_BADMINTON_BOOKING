@@ -32,7 +32,7 @@ export const API_ENDPOINTS = {
     GET_ALL_LIKE_LIST: "/Customer/GetAllLikeList",
     ADD_COURT_LIKE: "/Customer/AddCourtLikeList",
     DELETE_COURT_LIKE: "/Customer/DeleteCourtLikeList",
-    GET_ALL_BOOKING: "/Customer/GetAllBooking",
+    // GET_ALL_BOOKING: "/Customer/GetAllBooking",
     CHECK_CANCEL_BOOKING: "/Customer/CheckCancelBooking",
     CANCEL_BOOKING: "/Customer/CancelBooking",
   },
