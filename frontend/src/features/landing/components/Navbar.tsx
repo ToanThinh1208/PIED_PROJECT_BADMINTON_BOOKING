@@ -4,12 +4,13 @@ import {  Menu, X } from "lucide-react";
 import { useAuthStore } from "@/features/auth/store";
 import { cn } from "@/lib/utils";
 import { OwnerRegistrationButton } from "@/features/owner-registration";
+import { UserProfileCard } from "@/features/auth/components/UserProfileCard";
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { accessToken, setLoginPromptOpen } = useAuthStore();
+  const { accessToken } = useAuthStore();
 
   const NAV_ITEMS = [
     { label: "Trang chủ", path: "/" },
@@ -19,13 +20,6 @@ export function Navbar() {
     { label: "Lịch sử", path: "/history" },
   ];
 
-  const handleBookingClick = () => {
-    if (!accessToken) {
-      setLoginPromptOpen(true);
-    } else {
-      navigate("/courts");
-    }
-  };
 
   const handleLoginClick = () => {
     navigate("/login");
@@ -100,16 +94,7 @@ export function Navbar() {
 
         {/* CTA */}
         <div className="hidden md:flex items-center gap-3">
-              <button
-                onClick={handleBookingClick}
-            className="px-5 py-2 rounded-full text-white text-sm transition-all duration-200 hover:shadow-lg hover:scale-105"
-            style={{
-              background: "linear-gradient(135deg, #00C896, #00897B)",
-              fontWeight: 600,
-            }}
-          >
-            Đặt sân ngay
-          </button>
+
           <OwnerRegistrationButton variant="header" />
           {!accessToken && (
             <button
@@ -123,6 +108,7 @@ export function Navbar() {
               Đăng nhập
             </button>
           )}
+          {accessToken && <UserProfileCard />}
         </div>
 
         {/* Mobile menu toggle */}
@@ -146,16 +132,11 @@ export function Navbar() {
               {item.label}
             </button>
           ))}
-          <button
-            onClick={handleBookingClick}
-            className="px-5 py-2 rounded-full text-white text-sm w-full"
-            style={{
-              background: "linear-gradient(135deg, #00C896, #00897B)",
-              fontWeight: 600,
-            }}
-          >
-            Đặt sân ngay
-          </button>
+          {accessToken && (
+            <div className="flex justify-start mt-2">
+              <UserProfileCard />
+            </div>
+          )}
         </div>
       )}
     </nav>

@@ -42,6 +42,18 @@ export const API_ENDPOINTS = {
   COURT: {
     GET_BY_FILTERS: "/Court/CustomerSearchCourtByFilters",
     GET_BY_ID: "/Court/CustomerGetCourtDetailsById{courtId}",
+    GET_SUB_COURTS: "/Court/CustomerGetSubCourtByCourtId{courtId}",
+  },
+  /**
+   * Booking endpoints
+   */
+  BOOKING: {
+    GET_AVAILABLE_SLOTS: "/Booking/GetAvailableSlots",
+    CREATE: "/Booking/CreateBooking",
+    CREATE_BY_WALLET: "/Booking/CreateBookingByWallet",
+    CANCEL: "/Booking/CancelBooking",
+    REFUND: "/Booking/BookingRefund",
+    GET_ALL: "/Booking/GetBooking",
   },
   MAP: {
     BOXING_BOX: "/Map/boxing_ox",

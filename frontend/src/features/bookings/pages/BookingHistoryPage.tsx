@@ -82,7 +82,7 @@ export function BookingHistoryPage() {
           {filteredItems.length > 0 ? (
             filteredItems.map((booking) => (
               <BookingCard 
-                key={booking.id} 
+                key={booking.bookingId} 
                 booking={booking} 
                 onCancelClick={(id) => setCancellingId(id)}
               />
