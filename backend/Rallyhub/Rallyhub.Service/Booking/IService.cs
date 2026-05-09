@@ -7,5 +7,5 @@ public interface IService
     public Task<Response.CreateBookingResponse> CreateBookingByWallet(Request.ListAvailableSlots request);
     public Task<Response.BookingRefundResponse> BookingRefund(Guid bookingId);
     public Task<string> CanCelBooking(Guid bookingId);
-    public Task<Response.GetBookingResponse> GetBooking(Base.Request.PagingDay2 pagingDay2);
+    public Task<Base.Response.PageResult<Response.GetBookingResponse>>  GetBooking(Base.Request.PagingDay2 pagingDay2);
 }

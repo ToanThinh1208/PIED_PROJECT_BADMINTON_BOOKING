@@ -41,16 +41,15 @@ public class AdminController: ControllerBase
     }
     
     [HttpPost("AcceptCreateOwner")]
-    public async Task<IActionResult> AdminAcceptOwnerRequest([FromBody]Guid ownerRequestId)
+    public async Task<IActionResult> AdminAcceptOwnerRequest([FromQuery]Guid ownerRequestId)
     {
         var result = await _adminService.AdminApprovedOwnerRequest(ownerRequestId);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
     }
     
     [HttpPatch("RejectCreateOwner")]
-    public async Task<IActionResult> AdminRejectOwnerRequest([FromBody]Guid ownerRequestId, string? rejectReason)
+    public async Task<IActionResult> AdminRejectOwnerRequest([FromQuery]Guid ownerRequestId, [FromQuery]string? rejectReason)
     {
-        
         var result = await _adminService.AdminRejectOwnerRequest(ownerRequestId, rejectReason);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
     }
@@ -77,14 +76,14 @@ public class AdminController: ControllerBase
     }  
   
     [HttpPatch("RejectPendingCourt/{courtId}")]  
-    public async Task<IActionResult> AdminRejectPendingCourt([FromBody]Guid courtId, string? resonReject)  
+    public async Task<IActionResult> AdminRejectPendingCourt([FromRoute]Guid courtId, [FromQuery]string? reasonReject)  
     {  
-        var result = await _adminService.AdminRejectPendingCourt(courtId, resonReject);  
+        var result = await _adminService.AdminRejectPendingCourt(courtId, reasonReject);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success you!", HttpContext.TraceIdentifier));  
     }  
   
     [HttpPatch("ApprovePendingCourt/{courtId}")]  
-    public async Task<IActionResult> AdminApprovePendingCourt([FromBody]Guid courtId)  
+    public async Task<IActionResult> AdminApprovePendingCourt([FromRoute]Guid courtId)  
     {  
         var result = await _adminService.AdminApprovePendingCourt(courtId);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success you!"

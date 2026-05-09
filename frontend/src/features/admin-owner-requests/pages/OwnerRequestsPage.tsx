@@ -230,13 +230,12 @@ export function OwnerRequestsPage() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 text-sm">
-                          {request.customer?.firstName ||
-                          request.customer?.lastName
-                            ? `${request.customer?.firstName || ""} ${request.customer?.lastName || ""}`
+                          {request.firstName || request.lastName
+                            ? `${request.firstName || ""} ${request.lastName || ""}`
                             : request.businessName}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {request.customer?.email ||
+                          {request.email ||
                             "Xem chi tiết để biết thông tin"}
                         </p>
                       </div>
@@ -348,10 +347,10 @@ export function OwnerRequestsPage() {
                   <div>
                     <p className="text-xs text-gray-500">Họ và tên</p>
                     <p className="text-sm font-medium text-gray-900">
-                      {selectedRequest.customer?.firstName || ""}{" "}
-                      {selectedRequest.customer?.lastName || ""}
-                      {!selectedRequest.customer?.firstName &&
-                        !selectedRequest.customer?.lastName && (
+                      {selectedRequest.firstName || ""}{" "}
+                      {selectedRequest.lastName || ""}
+                      {!selectedRequest.firstName &&
+                        !selectedRequest.lastName && (
                           <span className="text-gray-400 font-normal">
                             Chưa cung cấp
                           </span>
@@ -362,7 +361,7 @@ export function OwnerRequestsPage() {
                     <p className="text-xs text-gray-500">Số điện thoại</p>
                     <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
                       <Phone size={12} className="text-emerald-500" />
-                      {selectedRequest.customer?.phoneNumber || (
+                      {selectedRequest.phoneNumber || (
                         <span className="text-gray-400 font-normal">
                           Chưa cung cấp
                         </span>
@@ -382,7 +381,7 @@ export function OwnerRequestsPage() {
                   <div>
                     <p className="text-xs text-gray-500">Email</p>
                     <p className="text-sm font-medium text-gray-900">
-                      {selectedRequest.customer?.email || (
+                      {selectedRequest.email || (
                         <span className="text-gray-400 font-normal">
                           Chưa cung cấp
                         </span>
