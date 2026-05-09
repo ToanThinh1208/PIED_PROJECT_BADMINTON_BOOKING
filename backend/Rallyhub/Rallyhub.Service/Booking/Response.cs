@@ -27,7 +27,7 @@ public class Response
         public List<BookingDetailItem> Slots { get; set; } = new();
         public string QrCodeUrl { get; set; } = null!;
     }
-    public class AdminRefundResponse
+    public class BookingRefundResponse
     {
         public Guid BookingId { get; set; }
         public string Status { get; set; } = null!;

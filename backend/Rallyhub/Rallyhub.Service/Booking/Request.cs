@@ -20,10 +20,5 @@ public class Request
         public Guid? CampaignId { get; set; }
         public List<SlotRequest> Slots { get; set; } = new();
     }
-    public class AdminRefundRequest
-    {
-        public required Guid BookingId  { get; set; }
-        public string? ImageUrl  { get; set; }
-    }
     
 }

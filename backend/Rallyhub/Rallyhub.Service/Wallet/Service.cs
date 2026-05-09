@@ -8,11 +8,13 @@ public class Service : IService
 {
     private readonly AppDbContext _dbcontext;
     private readonly IHttpContextAccessor _httpAccessor;
+    private readonly Transaction.IService _transactionService;
 
-    public Service(AppDbContext dbContext, IHttpContextAccessor httpAccessor)
+    public Service(AppDbContext dbContext, IHttpContextAccessor httpAccessor, Transaction.IService transactionService)
     {
         _dbcontext = dbContext;
         _httpAccessor = httpAccessor;
+        _transactionService = transactionService;
     }
     
     public async Task<bool> CreateWallet(Guid userId)
@@ -285,10 +287,39 @@ public class Service : IService
         return false;
     }
 
-    public async Task<string> AdminUpBalanceForUser(Guid userId, decimal amount)
+    public async Task<string> AdminUpBalanceForUser(Guid userId, decimal amount, string? description)
     {
-        await AddBanlanceToWallet(userId, amount, "Wallet");
+        // await AddBanlanceToWallet(userId, amount, "Wallet");
         //transsaction
+        var user = await _dbcontext.Users.FirstOrDefaultAsync(x => x.Id == userId);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+        var wallet = await _dbcontext.Wallets.FirstOrDefaultAsync(x => x.UserId == user.Id);
+        if (wallet == null)
+        {
+            throw new  Exception("Wallet not found");
+        }
+        
+        var transactionI = new Transaction.Request.CreateTransactionRequest()
+        {
+            Type = Transaction.Request.TypeList.Withdrawal,
+            Amount = amount,
+            BalanceBefore = wallet.Balance,
+            BalanceAfter =  wallet.Balance + amount,
+            TransferContent = description,
+            Status = "Success",
+            WalletId =  wallet.Id,
+        };
+        if (!await AddBanlanceToWallet(userId, amount, "Wallet"))
+        {
+            throw new Exception("Wallet reject balance failed");
+        }
+        if (!await _transactionService.CreateTransaction(transactionI))
+        {
+            throw new Exception("Error creating transaction");
+        }
         return "Success AdminDeduct";
     }
 }
