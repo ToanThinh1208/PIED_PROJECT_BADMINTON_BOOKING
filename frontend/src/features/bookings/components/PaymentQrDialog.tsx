@@ -45,21 +45,21 @@ export function PaymentQrDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md p-8 bg-white rounded-3xl border-none shadow-2xl overflow-hidden">
-        <DialogHeader className="text-center mb-6">
-          <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 size={32} className="text-emerald-500" />
+      <DialogContent className="max-w-[60%] sm:max-w-[400px] h-[600px] overflow-y-auto p-6 bg-white rounded-3xl border-none shadow-2xl">
+        <DialogHeader className="text-center mb-4">
+          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <CheckCircle2 size={24} className="text-emerald-500" />
           </div>
-          <DialogTitle className="text-2xl font-black text-[#0B2421]">
+          <DialogTitle className="text-xl font-black text-[#0B2421]">
             Đã tạo đơn thành công!
           </DialogTitle>
-          <p className="text-gray-400 text-sm font-medium">
+          <p className="text-gray-400 text-xs font-medium">
             Vui lòng quét mã QR bên dưới để thanh toán đơn hàng.
           </p>
         </DialogHeader>
 
         {bookingResponse ? (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
               <div className="relative bg-white p-4 rounded-[2rem] border border-gray-50 flex items-center justify-center">
@@ -81,7 +81,7 @@ export function PaymentQrDialog({
               </span>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Tổng thanh toán</span>
                 <span className="text-[#0B2421] font-black">
@@ -96,7 +96,7 @@ export function PaymentQrDialog({
               </div>
             </div>
 
-            <div className="pt-2 flex flex-col gap-3">
+            <div className="pt-1 flex flex-col gap-2">
               <Button 
                 onClick={onSuccess}
                 className="w-full h-12 bg-[#0B2421] hover:bg-[#1a3a36] text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
