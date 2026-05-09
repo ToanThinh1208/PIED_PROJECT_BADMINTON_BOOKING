@@ -201,11 +201,9 @@ export function BookingPage() {
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 ml-1">Lịch thi đấu chi tiết</p>
           <BookingTimeline 
             subCourts={subCourtsList}
-            courtName={court?.name || ""}
             selectedDate={selectedDate}
             selectedSlots={selectedSlots}
             onToggleSlot={handleToggleSlot}
-            selectedSubCourtId={effectiveSubCourtId}
           />
         </div>
       </div>

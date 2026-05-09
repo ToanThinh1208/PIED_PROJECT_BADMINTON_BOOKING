@@ -2,8 +2,6 @@ import {
   MapPin, 
   Calendar, 
   Clock, 
-  Layout, 
-  ChevronRight,
   CheckCircle2,
   XCircle,
   Clock3,
@@ -12,15 +10,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
-import type { GetBookingResponse, BookingStatus } from "../types";
+import type { GetBookingResponse } from "../types";
 
 interface BookingCardProps {
   booking: GetBookingResponse;
   onCancelClick?: (id: string) => void;
-  onViewDetail?: (id: string) => void;
 }
 
-export function BookingCard({ booking, onCancelClick, onViewDetail }: BookingCardProps) {
+export function BookingCard({ booking, onCancelClick }: BookingCardProps) {
   const getStatusConfig = (status: string) => {
     switch (status) {
       case "Banked":

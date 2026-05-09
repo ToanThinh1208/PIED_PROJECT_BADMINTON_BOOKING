@@ -1,8 +1,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { 
   Clock, 
-  Info,
-  Loader2
+  Info
 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -20,20 +19,16 @@ const TIME_SLOTS = Array.from({ length: 37 }, (_, i) => {
 
 interface BookingTimelineProps {
   subCourts: SubCourt[];
-  courtName: string;
   selectedDate: Date;
   selectedSlots: AvailableSlot[];
   onToggleSlot: (slot: AvailableSlot & { subCourtId: string }) => void;
-  selectedSubCourtId: string | null;
 }
 
 export function BookingTimeline({ 
   subCourts, 
-  courtName, 
   selectedDate, 
   selectedSlots, 
   onToggleSlot,
-  selectedSubCourtId 
 }: BookingTimelineProps) {
   const dateStr = format(selectedDate, "yyyy-MM-dd");
 
@@ -57,7 +52,7 @@ export function BookingTimeline({
     })),
   });
 
-  const isLoading = subCourtQueries.some(q => q.isLoading);
+
 
   const isSlotSelected = (slot: AvailableSlot, subId: string) => {
     return selectedSlots.some(s => 

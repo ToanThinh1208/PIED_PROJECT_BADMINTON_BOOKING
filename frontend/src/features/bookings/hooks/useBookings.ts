@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/shared/constants";
 import { bookingsService } from "../services";
-import { DEFAULT_PAGE_SIZE } from "../types";
+import { DEFAULT_PAGE_SIZE, type BookingHistoryResponse } from "../types";
 
 export function useBookings(pageIndex: number = 1, pageSize: number = DEFAULT_PAGE_SIZE) {
   return useQuery({

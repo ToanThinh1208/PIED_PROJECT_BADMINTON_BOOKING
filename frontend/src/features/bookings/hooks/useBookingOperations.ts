@@ -1,6 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { bookingsService } from "../services";
-import { QUERY_KEYS } from "@/shared/constants";
 import type { CreateBookingRequest } from "../types";
 
 export const useAvailableSlots = (subCourtId: string, date: string) => {

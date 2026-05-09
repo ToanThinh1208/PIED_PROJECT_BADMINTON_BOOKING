@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
-import { Loader2, Timer, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Timer, CheckCircle2 } from "lucide-react";
 import type { CreateBookingResponse } from "../types";
 
 interface PaymentQrDialogProps {
