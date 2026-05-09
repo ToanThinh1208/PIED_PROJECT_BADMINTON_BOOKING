@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rallyhub.Api.Extention;
 using Rallyhub.Repository;
@@ -21,10 +21,10 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPost("OwnerRequest")]
-    public async Task<IActionResult> OwnerRequest([FromBody]Request.OwnerRequestRequest request)
+    public async Task<IActionResult> OwnerRequest([FromForm]Request.OwnerRequestRequest model)
     {
 
-        var result = await _customerService.OwnerRequest(request);
+        var result = await _customerService.OwnerRequest(model);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
     }
 
