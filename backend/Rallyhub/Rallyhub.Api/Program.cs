@@ -88,18 +88,21 @@ builder.Services.AddQuartz(options =>
 {
     var bookingJobKey = new JobKey(nameof(BookingTimeoutJob));
     var bookingDetailJobKey = new JobKey(nameof(BookingDetailTimeJob));
-    options
-        .AddJob<BookingTimeoutJob>(bookingJobKey)
-        .AddJob<BookingDetailTimeJob>(bookingDetailJobKey)
-        .AddTrigger(trigger =>
-            trigger
-                .ForJob(bookingJobKey)
-                .ForJob(bookingDetailJobKey)
-                .WithSimpleSchedule(schedule => schedule
-                    .WithIntervalInSeconds(10) // 2.5 phút = 150 giây
-                    .RepeatForever()
-                )
-        );
+    options.AddJob<BookingTimeoutJob>(bookingJobKey)
+        .AddTrigger(trigger => trigger
+            .ForJob(bookingJobKey)
+            .WithSimpleSchedule(schedule => schedule
+                .WithIntervalInSeconds(10)
+                .RepeatForever()
+            ));
+
+    options.AddJob<BookingDetailTimeJob>(bookingDetailJobKey)
+        .AddTrigger(trigger => trigger
+            .ForJob(bookingDetailJobKey)
+            .WithSimpleSchedule(schedule => schedule
+                .WithIntervalInSeconds(10)
+                .RepeatForever()
+            ));
 });
 builder.Services.AddQuartzHostedService(options =>
 {

@@ -40,15 +40,15 @@ public class AdminController: ControllerBase
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
     }
     
-    [HttpGet("AcceptCreateOwner")]
-    public async Task<IActionResult> AdminAcceptOwnerRequest(Guid ownerRequestId)
+    [HttpPost("AcceptCreateOwner")]
+    public async Task<IActionResult> AdminAcceptOwnerRequest([FromBody]Guid ownerRequestId)
     {
         var result = await _adminService.AdminApprovedOwnerRequest(ownerRequestId);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
     }
     
-    [HttpGet("RejectCreateOwner")]
-    public async Task<IActionResult> AdminRejectOwnerRequest(Guid ownerRequestId, string? rejectReason)
+    [HttpPatch("RejectCreateOwner")]
+    public async Task<IActionResult> AdminRejectOwnerRequest([FromBody]Guid ownerRequestId, string? rejectReason)
     {
         
         var result = await _adminService.AdminRejectOwnerRequest(ownerRequestId, rejectReason);
@@ -62,7 +62,7 @@ public class AdminController: ControllerBase
             ("Success you!",HttpContext.TraceIdentifier));
     }
     [HttpPatch("BanAndUnbanUser")]
-    public async Task<IActionResult> BanAndUnbanUser(Service.Admin.Request.BanAndUnbanUserRequest request)
+    public async Task<IActionResult> BanAndUnbanUser([FromBody]Request.BanAndUnbanUserRequest request)
     {
         await _adminService.BanAndUnbanUser(request);
         return Ok(ApiResponseFactory.SuccessResponse
@@ -77,14 +77,14 @@ public class AdminController: ControllerBase
     }  
   
     [HttpPatch("RejectPendingCourt/{courtId}")]  
-    public async Task<IActionResult> AdminRejectPendingCourt(Guid courtId, string? resonReject)  
+    public async Task<IActionResult> AdminRejectPendingCourt([FromBody]Guid courtId, string? resonReject)  
     {  
         var result = await _adminService.AdminRejectPendingCourt(courtId, resonReject);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success you!", HttpContext.TraceIdentifier));  
     }  
   
     [HttpPatch("ApprovePendingCourt/{courtId}")]  
-    public async Task<IActionResult> AdminApprovePendingCourt(Guid courtId)  
+    public async Task<IActionResult> AdminApprovePendingCourt([FromBody]Guid courtId)  
     {  
         var result = await _adminService.AdminApprovePendingCourt(courtId);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success you!"

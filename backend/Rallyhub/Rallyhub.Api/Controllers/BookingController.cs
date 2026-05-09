@@ -17,21 +17,21 @@ public class BookingController: ControllerBase
         _bookingService = bookingService;
     }
     
-    [HttpGet("CustomerGetAvailableSlots")]
+    [HttpGet("GetAvailableSlots")]
     public async Task<IActionResult> GetAvailableSlots([FromQuery] Request.GetAvailableSlotsRequest request)
     {
         var result = await _bookingService.GetAvailableSlots(request);
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
             , HttpContext.TraceIdentifier));
     }
-    [HttpPost("CustomerCreateBooking")]
+    [HttpPost("CreateBooking")]
     public async Task<IActionResult> CreateBooking([FromBody] Request.ListAvailableSlots request)
     {
         var result = await _bookingService.CreateBooking(request);
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
             , HttpContext.TraceIdentifier));
     }
-    [HttpPost("CustomerCreateBookingByWallet")]
+    [HttpPost("CreateBookingByWallet")]
     public async Task<IActionResult> CreateBookingByWallet([FromBody] Request.ListAvailableSlots request)
     {
         var result = await _bookingService.CreateBookingByWallet(request);
@@ -43,5 +43,12 @@ public class BookingController: ControllerBase
     {
         var result = await _bookingService.BookingRefund(request);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
+    }
+    
+    [HttpPatch("CancelBooking")]
+    public async Task<IActionResult> CancelBooking(Guid bookingId)
+    {
+        var result = await _bookingService.CanCelBooking(bookingId);
+        return Ok(ApiResponseFactory.SuccessResponse(result,"Success you!", HttpContext.TraceIdentifier));
     }
 }

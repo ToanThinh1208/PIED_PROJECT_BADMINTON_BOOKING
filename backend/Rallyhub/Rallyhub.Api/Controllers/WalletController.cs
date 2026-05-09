@@ -43,7 +43,7 @@ public class WalletController : ControllerBase
     
     [Authorize(Policy = JwtExtensions.CustomerOrOwnerPolicy)]
     [HttpPatch("AddBalanceToWalletFromPayment")]
-    public async Task<IActionResult> AddBalanceToWalletFromPayment(decimal requestAmount)
+    public async Task<IActionResult> AddBalanceToWalletFromPayment([FromBody]decimal requestAmount)
     {
         var result = await _walletService.AddBalanceToWalletFromPayment(requestAmount);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success add money", HttpContext.TraceIdentifier));
@@ -51,7 +51,7 @@ public class WalletController : ControllerBase
     
     [Authorize(Policy = JwtExtensions.AdminPolicy)]
     [HttpPatch("AdminUpBalanceForUser")]
-    public async Task<IActionResult> AdminUpBalanceForUser(Guid userId,  decimal amount)
+    public async Task<IActionResult> AdminUpBalanceForUser([FromBody]Guid userId,  decimal amount)
     {
         var result = await _walletService.AdminUpBalanceForUser(userId, amount);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success AdminDeduct  wallet", HttpContext.TraceIdentifier));

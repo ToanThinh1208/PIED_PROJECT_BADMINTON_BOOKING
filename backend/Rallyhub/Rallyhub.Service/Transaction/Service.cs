@@ -4,7 +4,7 @@ using Rallyhub.Repository;
 
 namespace Rallyhub.Service.Transaction;
 
-public abstract class Service : IService
+public class Service : IService
 {
     private readonly AppDbContext _dbContext;
     private readonly IHttpContextAccessor _httpAccessor;
@@ -117,7 +117,7 @@ public abstract class Service : IService
         return false;
     }
 
-    public async Task<Base.Response.PageResult<Response.GetTransactionResponse>> GetTransactionResponse(Base.Request.PagingDay paginDay)
+    public async Task<Base.Response.PageResult<Response.GetTransactionResponse>> GetTransaction(Base.Request.PagingDay paginDay)
     {
         var userId = _httpAccessor.HttpContext.User.Claims.Where(x => x.Type == "UserId").FirstOrDefault()?.Value;
         var userIdGGuild = Guid.Parse(userId!);
@@ -158,12 +158,17 @@ public abstract class Service : IService
         return result;
     }
 
-    public async Task<Base.Response.PageResult<Response.AdminGetTransactionResponse>> AdminGetTransactionResponse(Guid? userId, Base.Request.PagingDay paginDay)
+    public async Task<Base.Response.PageResult<Response.AdminGetTransactionResponse>> AdminGetTransaction(Guid? userId, Base.Request.PagingDay paginDay)
     {
         var query =  _dbContext.Transactions.Where(x => true);
         if (userId != null)
         {
             query = _dbContext.Transactions.Where(x => x.Wallet.UserId == userId);
+        }
+
+        if (paginDay.Id != null)
+        {
+            query = _dbContext.Transactions.Where(x => x.Id == paginDay.Id);
         }
         if (paginDay.Search != null)
         {

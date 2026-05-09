@@ -21,7 +21,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPost("OwnerRequest")]
-    public async Task<IActionResult> OwnerRequest(Request.OwnerRequestRequest request)
+    public async Task<IActionResult> OwnerRequest([FromBody]Request.OwnerRequestRequest request)
     {
 
         var result = await _customerService.OwnerRequest(request);
@@ -50,12 +50,7 @@ public class CustomerController : ControllerBase
     //     return Ok(ApiResponseFactory.SuccessResponse("Success you!", HttpContext.TraceIdentifier));
     // }
     
-    [HttpPatch("CancelBooking")]
-    public async Task<IActionResult> CancelBooking(Guid bookingId)
-    {
-        var result = await _customerService.CanCelBooking(bookingId);
-        return Ok(ApiResponseFactory.SuccessResponse(result,"Success you!", HttpContext.TraceIdentifier));
-    }
+   
 
     [HttpGet("GetAllLikeList")]
     public async Task<IActionResult> GetAllLikeList([FromQuery] Service.Base.Request.PagingRequest request)
@@ -65,7 +60,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPost("AddCourtLikeList")]
-    public async Task<IActionResult> AddCourtLikeList(Request.AddCourtLikeListRequest request)
+    public async Task<IActionResult> AddCourtLikeList([FromBody]Request.AddCourtLikeListRequest request)
     {
         await _customerService.AddCourtLikeList(request);
         return Ok(ApiResponseFactory.SuccessResponse("Success you!", HttpContext.TraceIdentifier));
