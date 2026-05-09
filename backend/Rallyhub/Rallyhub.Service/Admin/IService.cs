@@ -14,7 +14,7 @@ public interface IService
     public Task<Base.Response.PageResult<Response.AdminGetPendingCourtsResponse>> AdminGetPendingCourts (Base.Request.Pagination request);  
     public Task<string> AdminApprovePendingCourt(Guid courtId);  
     public Task<string> AdminRejectPendingCourt(Guid courtId, string? rejectReason);
-    public Task<Response.RefundResponse> Refund(Request.RefundRequest request);
+    public Task<Response.AdminRefundResponse> AdminRefund(Request.AdminRefundRequest request);
     public Task<List<Response.GetBookingDetailStatusRefundPendingResponse>> GetBookingDetailStatusRefundPending();
     public Task<Response.GetWalletResponse> GetWallet(Request.GetWalletRequest request);
     public Task<string> AddBalanceToUser(Request.AddBalanceRequest request);

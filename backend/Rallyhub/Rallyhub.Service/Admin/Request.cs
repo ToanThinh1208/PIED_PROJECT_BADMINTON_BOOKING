@@ -8,16 +8,11 @@ public class Request
         public string Status { get; set; }
     }
     
-    public class RejectPendingCourtsRequest  
-    {  
-        public required string Reason { get; set; }  
-    }
 
-    public class RefundRequest
+    public class AdminRefundRequest
     {
-        public required Guid CustomerId  { get; set; }
-        public required Guid BookingDetailId  { get; set; }
-        public required string ImageUrl  { get; set; }
+        public required Guid BookingId  { get; set; }
+        public string? ImageUrl  { get; set; }
     }
     public class GetWalletRequest
     {

@@ -81,10 +81,12 @@ public class Response
         public string PictureUrl { get; set; } = null!;
     }  
 
-    public class RefundResponse
+    public class AdminRefundResponse
     {
-        public string Message { get; set; }
-        public string ImageUrl  { get; set; }
+        public Guid BookingId { get; set; }
+        public string Status { get; set; } = null!;
+        public decimal RefundAmount { get; set; }
+        public string Message { get; set; } = null!;
     }
 
     public class GetWalletResponse
