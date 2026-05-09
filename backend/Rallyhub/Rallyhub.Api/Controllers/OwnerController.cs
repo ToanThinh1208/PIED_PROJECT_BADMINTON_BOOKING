@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rallyhub.Api.Extention;
 using Rallyhub.Service.Models;
@@ -19,26 +19,26 @@ public class OwnerController : ControllerBase
     }
     
     [HttpPost("OwnerCreateCourt")]  
-    public async Task<IActionResult> CreateCourt(Request.CreateCourtRequest request)  
+    public async Task<IActionResult> CreateCourt([FromForm]Request.CreateCourtRequest request)  
     {  
         var result = await _ownerService.CreateCourt(request);  
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Tạo sân thành công, đang chờ Admin duyệt"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Waiting for Admin accept"   
             , HttpContext.TraceIdentifier));  
     }  
   
     [HttpGet("OwnerGetAllCourts")]  
-    public async Task<IActionResult> GetAllCourts([FromQuery] Request.GetMyCourtsRequest request)  
+    public async Task<IActionResult> GetAllCourts([FromQuery]Request.GetAllMyCourtsRequest request)  
     {  
         var result = await _ownerService.GetAllMyCourts(request);  
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Xem danh sách các sân đã đăng kí thành công"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
             , HttpContext.TraceIdentifier));  
     }   
     
     [HttpPost("OwnerCreateSubCourt")]  
-    public async Task<IActionResult> CreateSubCourt(Request.CreateSubCourtRequest request)  
+    public async Task<IActionResult> CreateSubCourt([FromBody]Request.CreateSubCourtRequest request)  
     {  
         var result = await _ownerService.CreateSubCourt(request);  
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Tạo sân con thành công"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
             , HttpContext.TraceIdentifier));  
     } 
     
@@ -46,31 +46,23 @@ public class OwnerController : ControllerBase
     public async Task<IActionResult> GetMySubCourts([FromQuery] Request.GetMySubCourtsRequest request)  
     {  
         var result = await _ownerService.GetMySubCourts(request);  
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Lấy thành công danh sách sân con"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
             , HttpContext.TraceIdentifier));  
     } 
     
-    [HttpPost("OwnerCreateConfigSlot")]  
-    public async Task<IActionResult> CreateConfigSlot([FromBody] Request.CreateConfigSlotRequest request)  
-    {  
-        var result = await _ownerService.CreateConfigSlot(request); 
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Cấu hình các slot thành công"   
-            , HttpContext.TraceIdentifier));  
-    } 
-    
-    [HttpGet("GetConfigSlotBySubCourtId")]  
+    [HttpGet("OwnerGetConfigSlot")]  
     public async Task<IActionResult> GetConfigSlotBySubCourtId(Guid subCourtId)  
     {  
         var result = await _ownerService.GetConfigSlotBySubCourtId(subCourtId); 
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Lấy thành công danh sách các slots"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
             , HttpContext.TraceIdentifier));  
     }
     
     [HttpPost("CreateOverrideSlot")]  
-    public async Task<IActionResult> CreateOverrideSlot(Request.CreateOverrideSlotRequest request)  
+    public async Task<IActionResult> CreateOverrideSlot([FromBody]Request.CreateOverrideSlotRequest request)  
     {  
         var result = await _ownerService.CreateOverrideSlot(request); 
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Gọp slot thành công"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
             , HttpContext.TraceIdentifier));  
     }
 
@@ -78,29 +70,29 @@ public class OwnerController : ControllerBase
     public async Task<IActionResult> GetOverrideSlotBySubCourtId(Guid subCourtId)  
     {  
         var result = await _ownerService.GetOverrideSlotBySubCourtId(subCourtId); 
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Lấy thành công danh sách overrideslot"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
             , HttpContext.TraceIdentifier));  
     }
     
     [HttpPost("CreateExceptionSlot")]  
-    public async Task<IActionResult> CreateExceptionSlot(Request.CreateExceptionSlotRequest request)  
+    public async Task<IActionResult> CreateExceptionSlot([FromBody]Request.CreateExceptionSlotRequest request)  
     {  
         var result = await _ownerService.CreateExceptionSlot(request); 
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Tạo thành công exception slot"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
             , HttpContext.TraceIdentifier));  
     }
     [HttpGet("GetExceptionSlotBySubCourtId")]  
     public async Task<IActionResult> GetExceptionSlotResponse(Guid subCourtId)  
     {  
         var result = await _ownerService.GetExceptionSlotBySubCourtId(subCourtId); 
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Tạo thành công exception slot"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
             , HttpContext.TraceIdentifier));  
     }
     [HttpGet("GetSetupSlotsBySubCourtId")]  
     public async Task<IActionResult> GetSetupSlots(Guid subCourtId)  
     {  
         var result = await _ownerService.GetSetupSlots(subCourtId); 
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Xem toàn bộ cấu hình slot thành công"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
             , HttpContext.TraceIdentifier));  
     }
     
@@ -108,7 +100,7 @@ public class OwnerController : ControllerBase
     public async Task<IActionResult> GetAvailableSlots([FromQuery]Request.GetAvailableSlotsRequest request)  
     {  
         var result = await _ownerService.GetAvailableSlots(request); 
-        return Ok(ApiResponseFactory.SuccessResponse( result,"Lấy slot đang trống thành công"   
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
             , HttpContext.TraceIdentifier));  
     }
 }

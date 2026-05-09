@@ -30,6 +30,7 @@ public class Response
         public decimal? Price { get; set; }
         public double Rating  { get; set; }
     }
+
     public class BookingResponse
     {
         public Guid Id { get; set; }

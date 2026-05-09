@@ -20,21 +20,21 @@ public class Usercontroller : ControllerBase
     }
 
     [HttpPost("Register")]
-    public async Task<IActionResult> RegisterTask(Request.RegisterRequest request)
+    public async Task<IActionResult> RegisterTask([FromBody]Request.RegisterRequest request)
     {
         string result = await _identityService.RegisterTask(request);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success, check mail to verify otp", HttpContext.TraceIdentifier));
     }
     
     [HttpPost("VerifyOtp")]
-    public async Task<IActionResult> VerifyOtp(Service.IdentityService.Request.VerifyOtpRequest request)
+    public async Task<IActionResult> VerifyOtp([FromBody]Service.IdentityService.Request.VerifyOtpRequest request)
     {
         var result = await _identityService.VerifyOtp(request.Email, request.OtpCode);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success register", HttpContext.TraceIdentifier));
     }
     
     [HttpPost("Login")]
-    public async Task<IActionResult> Login(Service.IdentityService.Request.LoginRequest request)
+    public async Task<IActionResult> Login([FromBody]Service.IdentityService.Request.LoginRequest request)
     {
         var result = await _identityService.Login(request);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Welcome", HttpContext.TraceIdentifier));
@@ -57,14 +57,14 @@ public class Usercontroller : ControllerBase
     // }
     
     [HttpPost("ForgotPassword")]
-    public async Task<IActionResult> ForgotPassword(Service.IdentityService.Request.ForgotPasswordRequest request)
+    public async Task<IActionResult> ForgotPassword([FromBody]Service.IdentityService.Request.ForgotPasswordRequest request)
     {
         var result = await _identityService.ForgotPassword(request);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Thank you!", HttpContext.TraceIdentifier));
     }
     
     [HttpPut("ResetPassword")]
-    public async Task<IActionResult> ResetPassword(Service.IdentityService.Request.ResetPasswordRequest request)
+    public async Task<IActionResult> ResetPassword([FromBody]Service.IdentityService.Request.ResetPasswordRequest request)
     {
         var result = await _identityService.ResetPassword(request);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Thank you!", HttpContext.TraceIdentifier));
@@ -72,7 +72,7 @@ public class Usercontroller : ControllerBase
     
     [HttpPut("ChangePassword")]
     [Authorize]
-    public async Task<IActionResult> ChangePassword(Request.ChangePasswordRequest request)
+    public async Task<IActionResult> ChangePassword([FromBody]Request.ChangePasswordRequest request)
     {
         var result = await _userService.ChangePassword(request);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Thank you!", HttpContext.TraceIdentifier));
@@ -80,7 +80,7 @@ public class Usercontroller : ControllerBase
 
     [HttpPatch("UpdateProfile")]
     [Authorize(Policy = JwtExtensions.CustomerOrOwnerOrAdminPolicy)]
-    public async Task<IActionResult> UpdateProfile(Request.UpdateProfile request)
+    public async Task<IActionResult> UpdateProfile([FromBody]Request.UpdateProfile request)
     {
         await _userService.UpdateProfile(request);
         return Ok(ApiResponseFactory.SuccessResponse("Updated Profile Success", HttpContext.TraceIdentifier));

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Rallyhub.Repository;
 using System.Text.Json;
 using System.Globalization;
-using StatusCourt = Rallyhub.Service.Enum.Enum.StatusCreateCourt;
 namespace Rallyhub.Service.MapService;
 
 public class Service : IService
@@ -23,7 +22,7 @@ public class Service : IService
         CancellationToken cancellationToken)
     {
         var markers = await _dbContext.Courts
-            .Where(x => x.Status == nameof(StatusCourt.Active)
+            .Where(x => x.Status == "Active"
                         && x.Latitude >= request.MinLat && x.Latitude <= request.MaxLat
                         && x.Longitude >= request.MinLon && x.Longitude <= request.MaxLon)
             .Select(x => new Response.CourtMapItem
@@ -43,7 +42,7 @@ public class Service : IService
         CancellationToken cancellationToken)
     {
         var allCourts = await _dbContext.Courts
-            .Where(x => x.Status == nameof(StatusCourt.Active))
+            .Where(x => x.Status == "Active")
             .Select(x => new Response.CourtMapItem
             {
                 Id = x.Id,
@@ -155,21 +154,51 @@ public class Service : IService
         string text)
     {
         var client = _httpClientFactory.CreateClient("VietMap");
-        var url = $"{_mapOptions.BaseUrl}/search?api-version=1.1" +
-                  $"&apikey={_mapOptions.ApiKey}" +
-                  $"&text={Uri.EscapeDataString(text)}";
-        var response = await client.GetAsync(url);
-        if (!response.IsSuccessStatusCode) return null;
-        var json = await response.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(json);
-        if (doc.RootElement.ValueKind == JsonValueKind.Array &&
-            doc.RootElement.GetArrayLength() > 0)
+        var searchUrl = 
+                         $"{_mapOptions.BaseUrl}/search/v3" +
+                         $"?api-version=1.1" +
+                         $"&apikey={_mapOptions.ApiKey}" +
+                         $"&text={Uri.EscapeDataString(text)}";
+        var searchResponse  = await client.GetAsync(searchUrl);
+        if (!searchResponse.IsSuccessStatusCode) 
+                return null;
+        var searchJson  = await searchResponse.Content.ReadAsStringAsync();
+        using var searchDoc  = JsonDocument.Parse(searchJson);
+        if (searchDoc.RootElement.ValueKind != JsonValueKind.Array ||
+            searchDoc.RootElement.GetArrayLength() == 0)
         {
-            var first = doc.RootElement[0];
-            if(first.TryGetProperty("lat", out var lat) &&
-               first.TryGetProperty("lon", out var lon))
-                return ((decimal)lat.GetDouble(), (decimal)lon.GetDouble());
+            return null;
         }
+        var firstResult = searchDoc.RootElement[0];
+        if (!firstResult.TryGetProperty("ref_id", out var refIdElement))
+        {
+            return null;
+        }
+        var refId = refIdElement.GetString();
+        if (string.IsNullOrWhiteSpace(refId))
+        {
+            return null;
+        }
+        var placeUrl =
+            $"{_mapOptions.BaseUrl}/place/v3" +
+            $"?apikey={_mapOptions.ApiKey}" +
+            $"&refid={Uri.EscapeDataString(refId)}";
+        var placeResponse = await client.GetAsync(placeUrl);
+        if (!placeResponse.IsSuccessStatusCode)
+            return null;
+        var placeJson = await placeResponse.Content.ReadAsStringAsync();
+        using var placeDoc = JsonDocument.Parse(placeJson);
+        var root = placeDoc.RootElement;
+
+        if (root.TryGetProperty("lat", out var latElement) &&
+            root.TryGetProperty("lng", out var lngElement))
+        {
+            return (
+                (decimal)latElement.GetDouble(),
+                (decimal)lngElement.GetDouble()
+            );
+        }
+
         return null;
     }
 }

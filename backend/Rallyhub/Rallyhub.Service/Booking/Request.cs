@@ -12,10 +12,18 @@ public class Request
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
     }
-    public class HoldBookingRequest
+    public class ListAvailableSlots
     {
         public Guid SubCourtId { get; set; }
         public DateOnly Date { get; set; }
+        public string? Code {get; set;}
+        public Guid? CampaignId { get; set; }
         public List<SlotRequest> Slots { get; set; } = new();
     }
+    public class AdminRefundRequest
+    {
+        public required Guid BookingId  { get; set; }
+        public string? ImageUrl  { get; set; }
+    }
+    
 }
