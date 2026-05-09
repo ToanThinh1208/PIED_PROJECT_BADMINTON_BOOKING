@@ -19,7 +19,7 @@ public class OwnerController : ControllerBase
     }
     
     [HttpPost("OwnerCreateCourt")]  
-    public async Task<IActionResult> CreateCourt(Request.CreateCourtRequest request)  
+    public async Task<IActionResult> CreateCourt([FromBody]Request.CreateCourtRequest request)  
     {  
         var result = await _ownerService.CreateCourt(request);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Waiting for Admin accept"   
@@ -35,7 +35,7 @@ public class OwnerController : ControllerBase
     }   
     
     [HttpPost("OwnerCreateSubCourt")]  
-    public async Task<IActionResult> CreateSubCourt(Request.CreateSubCourtRequest request)  
+    public async Task<IActionResult> CreateSubCourt([FromBody]Request.CreateSubCourtRequest request)  
     {  
         var result = await _ownerService.CreateSubCourt(request);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
@@ -59,7 +59,7 @@ public class OwnerController : ControllerBase
     }
     
     [HttpPost("CreateOverrideSlot")]  
-    public async Task<IActionResult> CreateOverrideSlot(Request.CreateOverrideSlotRequest request)  
+    public async Task<IActionResult> CreateOverrideSlot([FromBody]Request.CreateOverrideSlotRequest request)  
     {  
         var result = await _ownerService.CreateOverrideSlot(request); 
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   
@@ -75,7 +75,7 @@ public class OwnerController : ControllerBase
     }
     
     [HttpPost("CreateExceptionSlot")]  
-    public async Task<IActionResult> CreateExceptionSlot(Request.CreateExceptionSlotRequest request)  
+    public async Task<IActionResult> CreateExceptionSlot([FromBody]Request.CreateExceptionSlotRequest request)  
     {  
         var result = await _ownerService.CreateExceptionSlot(request); 
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success"   

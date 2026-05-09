@@ -21,7 +21,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPost("OwnerRequest")]
-    public async Task<IActionResult> OwnerRequest(Request.OwnerRequestRequest request)
+    public async Task<IActionResult> OwnerRequest([FromBody]Request.OwnerRequestRequest request)
     {
 
         var result = await _customerService.OwnerRequest(request);
@@ -37,14 +37,14 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPost("CheckCancelBooking")]
-    public async Task<IActionResult> CheckCancelBooking(Request.CancelBooking request)
+    public async Task<IActionResult> CheckCancelBooking([FromBody]Request.CancelBooking request)
     {
         var result = await _customerService.CheckCancelBooking(request);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
     }
 
     [HttpPatch("CancelBooking")]
-    public async Task<IActionResult> CheckCancel(Request.CancelBooking request)
+    public async Task<IActionResult> CheckCancel([FromBody]Request.CancelBooking request)
     {
         await _customerService.CancelBooking(request);
         return Ok(ApiResponseFactory.SuccessResponse("Success you!", HttpContext.TraceIdentifier));
@@ -58,7 +58,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPost("AddCourtLikeList")]
-    public async Task<IActionResult> AddCourtLikeList(Request.AddCourtLikeListRequest request)
+    public async Task<IActionResult> AddCourtLikeList([FromBody]Request.AddCourtLikeListRequest request)
     {
         await _customerService.AddCourtLikeList(request);
         return Ok(ApiResponseFactory.SuccessResponse("Success you!", HttpContext.TraceIdentifier));
