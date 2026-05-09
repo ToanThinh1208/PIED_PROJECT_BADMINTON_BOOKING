@@ -38,4 +38,10 @@ public class BookingController: ControllerBase
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
             , HttpContext.TraceIdentifier));
     }
+    [HttpPatch("BookingRefund")]
+    public async Task<IActionResult> BookingRefund(Request.AdminRefundRequest request)
+    {
+        var result = await _bookingService.BookingRefund(request);
+        return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
+    }
 }

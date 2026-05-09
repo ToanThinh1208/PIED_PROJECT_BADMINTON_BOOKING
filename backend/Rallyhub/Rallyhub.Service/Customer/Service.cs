@@ -216,7 +216,12 @@ public class Service : IService
    public async Task<Base.Response.PageResult<Response.LikeListResponse>> GetAllLikeList(Base.Request.PagingRequest request)
     {
         var getCustomerId = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
+        if (getCustomerId == null)
+        {
+            throw new Exception("Không xác minh được danh tính của Customer");
+        }
         var customerId = Guid.Parse(getCustomerId!);
+        
         var likeList = _dbContext.LikeListDetails
             .Include(x => x.Court)
             .Where(x => 
@@ -243,8 +248,13 @@ public class Service : IService
     public async Task AddCourtLikeList(Request.AddCourtLikeListRequest request)
     {
         var getCustomerId = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
-        var customerId = Guid.Parse(getCustomerId!);
-        var court = await _dbContext.Courts.FirstOrDefaultAsync(x => x.Id == request.CourtId);
+        if (getCustomerId == null)
+        {
+            throw new Exception("Không xác minh được danh tính của Customer");
+        }
+        var customerId = Guid.Parse(getCustomerId);
+        var court = await _dbContext.Courts
+            .FirstOrDefaultAsync(x => x.Id == request.CourtId);
         if (court == null)
         {
             throw new Exception("Sân không tồn tại trên hệ thống");

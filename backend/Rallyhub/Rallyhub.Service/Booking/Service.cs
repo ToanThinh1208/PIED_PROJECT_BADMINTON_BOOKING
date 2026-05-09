@@ -8,12 +8,14 @@ public class Service: IService
     private readonly AppDbContext _dbContext;
     private readonly IHttpContextAccessor _httpContext;
     private readonly Wallet.IService _walletService;
+    private readonly Transaction.IService _transactionService;
 
-    public Service(AppDbContext dbContext, IHttpContextAccessor httpContext, Wallet.IService walletService)
+    public Service(AppDbContext dbContext, IHttpContextAccessor httpContext, Wallet.IService walletService, Transaction.IService transactionService)
     {
         _dbContext = dbContext;
         _httpContext = httpContext;
         _walletService = walletService;
+        _transactionService = transactionService;
     }
     
      public async Task<List<Response.SlotResponse>> GetAvailableSlots(Request.GetAvailableSlotsRequest request)
@@ -346,6 +348,88 @@ public class Service: IService
                 EndTime = x.EndTime,
                 Price = x.Price
             }).ToList(),
+        };
+    }
+    public async Task<Response.AdminRefundResponse> BookingRefund (Request.AdminRefundRequest request)
+    {
+        var customerIdClaim = _httpContext.HttpContext.User.Claims
+            .FirstOrDefault(x => x.Type == "CustomerId")?.Value;
+        if (customerIdClaim == null)
+        {
+            throw new Exception("Không tìm thấy Customer");
+        }
+        var customerId = Guid.Parse(customerIdClaim);
+        var user = await _dbContext.Users
+            .Include(x => x.Wallet)
+            .FirstOrDefaultAsync(x => x.Customer!.Id == customerId);
+        if (user == null)
+        {
+            throw new Exception("Không tìm thấy user");
+        }
+       
+        var booking = await _dbContext.Bookings
+            .Include(x => x.BookingDetails)
+                .ThenInclude(x => x.SubCourt)
+                    .ThenInclude(x => x.Court)
+            .Include(x => x.Customer)
+            .FirstOrDefaultAsync(x => x.Id == request.BookingId);
+        if (booking == null)
+        {
+            throw new Exception("Không tìm thấy đơn đã sân");
+        }
+        if (booking.Status != "Banked")
+        {
+            throw new Exception($"Không thể hoàn tiền đối với đơn hàng đang ở trạng thái {booking.Status}");
+        }
+        var earlierSlot = booking.BookingDetails.OrderBy(x => x.StartTime).First();
+        var refundDeadline = earlierSlot.Date.AddHours((double)-earlierSlot.SubCourt.Court.TimeRefundBefor!);
+        var timeNow = DateTimeOffset.UtcNow;
+        if (timeNow > refundDeadline)
+        {
+            throw new Exception("Không thể refund");
+        }
+
+        if (!await _walletService.AddBanlanceToWallet(user.Id, booking.FinalPrice, "payment"))
+        {
+            throw new Exception("Wallet reject balance failed");
+        }
+        
+        var transactionI = new Transaction.Request.CreateTransactionRequest()
+        {
+            Type = Transaction.Request.TypeList.Refund,
+            Amount = booking.FinalPrice,
+            BalanceBefore = user.Wallet!.Balance,
+            BalanceAfter =  user.Wallet!.Balance + booking.FinalPrice,
+            Status = "Success",
+            WalletId =  user.Wallet!.Id,
+        };
+        if (!await _transactionService.CreateTransaction(transactionI))
+        {
+            throw new Exception("Error creating transaction");
+        }
+        booking.Status = "Refund";
+        booking.UpdatedAt = DateTimeOffset.UtcNow;
+        _dbContext.Bookings.Update(booking);
+
+        foreach (var details in booking.BookingDetails)
+        {
+            details.Status = "Cancelled";
+        }
+        await _dbContext.SaveChangesAsync();
+        // await _mailService.SendMail(new MailContent()
+        // {
+        //     To = user.Email,
+        //     Subject = $"Welcom to Rallyhub",
+        //     Body = $"Đã hoàn tiền thành công" + "\n"
+        //         + $"{request.ImageUrl}"
+        // });
+        return new Response.AdminRefundResponse()
+        {
+            BookingId = booking.Id,
+            Status = "Refund",
+            RefundAmount = booking.FinalPrice,
+            Message = "Hoàn tiền thành công"
+            
         };
     }
 }
