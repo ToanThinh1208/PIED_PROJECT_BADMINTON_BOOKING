@@ -184,7 +184,7 @@ public class Service: IService
             TotalPrice = totalPrice,
             FinalPrice = finalPrice,
             Status = "Pending",
-            ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(30),
+            ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(100),
             CampaignId = request.CampaignId,
         };
         
@@ -518,8 +518,10 @@ public class Service: IService
                 SlotId = x.Id,
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,
-                Price = x.Price
+                Price = x.Price,
+                Date = x.Date,
             }).ToList(),
+            
         });
         var list = await  select.ToListAsync();
         var result = new Base.Response.PageResult<Response.GetBookingResponse>()

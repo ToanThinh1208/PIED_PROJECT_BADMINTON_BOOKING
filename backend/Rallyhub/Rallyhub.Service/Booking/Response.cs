@@ -43,7 +43,9 @@ public class Response
         public string Address { get; set; } = null!;
         public List<SlotsResponse> SlotsResponses { get; set; } = new();
         public string PhoneNumber { get; set; } = null!;
+        
         public string UrlMap { get; set; } = null!;
+        
     }
 
     public class SlotsResponse
@@ -52,6 +54,6 @@ public class Response
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
         public decimal Price { get; set; }
-        
+        public DateTimeOffset Date { get; set; }
     }
 }
