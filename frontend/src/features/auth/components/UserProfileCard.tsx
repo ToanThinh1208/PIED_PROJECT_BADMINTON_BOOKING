@@ -23,14 +23,14 @@ export function UserProfileCard() {
   if (!accessToken || !user) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
+    <div className="relative z-50 flex flex-col items-end">
       {/* ─── Profile Details Card (Collapsible) ───────────────── */}
       <div
         className={cn(
-          "w-64 bg-white/80 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 origin-bottom-right pointer-events-auto",
+          "absolute top-full right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 origin-top-right z-50",
           isOpen
             ? "scale-100 opacity-100 translate-y-0"
-            : "scale-75 opacity-0 translate-y-10 pointer-events-none",
+            : "scale-75 opacity-0 -translate-y-4 pointer-events-none",
         )}
       >
         <div className="p-5">
@@ -105,13 +105,13 @@ export function UserProfileCard() {
         variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "h-14 px-4 rounded-2xl flex items-center gap-3 shadow-lg transition-all duration-300 pointer-events-auto active:scale-95 group overflow-hidden relative hover:bg-transparent",
+          "h-11 px-3 rounded-xl flex items-center gap-3 transition-all duration-300 active:scale-95 group overflow-hidden relative",
           isOpen
-            ? "bg-[#091E1B] text-white shadow-[#091E1B]/30 hover:bg-[#091E1B]/90"
-            : "bg-white text-[#091E1B] shadow-gray-200 hover:bg-gray-50",
+            ? "bg-[#091E1B] text-white shadow-lg shadow-[#091E1B]/20"
+            : "bg-gray-50 text-[#091E1B] hover:bg-gray-100",
         )}
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#004E43] to-[#00CE98] flex items-center justify-center text-white group-hover:scale-110 transition-transform overflow-hidden">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#004E43] to-[#00CE98] flex items-center justify-center text-white group-hover:scale-110 transition-transform overflow-hidden shadow-sm">
           {user.avatarUrl ? (
             <img
               src={user.avatarUrl}
@@ -125,9 +125,12 @@ export function UserProfileCard() {
           )}
         </div>
 
-        <span className="font-bold text-sm">Tài khoản</span>
+        <div className="flex flex-col items-start">
+          <span className="text-[10px] font-black uppercase tracking-widest opacity-50 leading-none mb-1">Tài khoản</span>
+          <span className="text-xs font-bold leading-none">{user.firstName}</span>
+        </div>
 
-        {isOpen ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+        {isOpen ? <ChevronDown size={14} className="opacity-50" /> : <ChevronUp size={14} className="opacity-50" />}
 
         {/* Subtle Shine Effect */}
         <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12" />

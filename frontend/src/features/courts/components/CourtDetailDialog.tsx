@@ -1,4 +1,5 @@
 import { MapPin, Phone, Clock, Star, Info, Globe } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useCourtDetail } from "../hooks/useCourts";
 import {
   Dialog,
@@ -18,6 +19,7 @@ interface CourtDetailDialogProps {
 }
 
 export function CourtDetailDialog({ courtId, isOpen, onClose }: CourtDetailDialogProps) {
+  const navigate = useNavigate();
   const { data: court, isLoading, isError } = useCourtDetail(courtId || "");
 
   return (
@@ -147,7 +149,13 @@ export function CourtDetailDialog({ courtId, isOpen, onClose }: CourtDetailDialo
               )}
 
               <div className="pt-4">
-                <Button className="w-full h-12 bg-[#00897B] hover:bg-[#00796B] text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-emerald-900/10 active:scale-[0.98]">
+                <Button 
+                  onClick={() => {
+                    onClose();
+                    navigate(`/courts/${courtId}/booking`);
+                  }}
+                  className="w-full h-12 bg-[#00897B] hover:bg-[#00796B] text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-emerald-900/10 active:scale-[0.98]"
+                >
                   ĐẶT SÂN NGAY
                 </Button>
               </div>

@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import type { BookingHistoryItem, BookingHistoryResponse, FilterStatus } from "../types";
+import type { GetBookingResponse, BookingHistoryResponse, FilterStatus } from "../types";
 
 interface FilteredBookingsResult {
-  filteredItems: BookingHistoryItem[];
+  filteredItems: GetBookingResponse[];
   counts: {
     all: number;
     ongoing: number;

@@ -2,25 +2,23 @@ import {
   MapPin, 
   Calendar, 
   Clock, 
-  Layout, 
-  Flag, 
-  ChevronRight,
   CheckCircle2,
   XCircle,
-  Clock3
+  Clock3,
+  Phone,
+  Hash
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
-import type { BookingHistoryItem, BookingStatus } from "../types";
+import type { GetBookingResponse } from "../types";
 
 interface BookingCardProps {
-  booking: BookingHistoryItem;
+  booking: GetBookingResponse;
   onCancelClick?: (id: string) => void;
-  onViewDetail?: (id: string) => void;
 }
 
-export function BookingCard({ booking, onCancelClick, onViewDetail }: BookingCardProps) {
-  const getStatusConfig = (status: BookingStatus) => {
+export function BookingCard({ booking, onCancelClick }: BookingCardProps) {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case "Banked":
         return {
@@ -56,7 +54,17 @@ export function BookingCard({ booking, onCancelClick, onViewDetail }: BookingCar
     }
   };
 
-  const statusConfig = getStatusConfig(booking.status);
+  const status = booking.status || (booking as any).Status || "Pending";
+  const statusConfig = getStatusConfig(status);
+  
+  const id = booking.bookingId || (booking as any).Id || "";
+  const finalPrice = booking.finalPrice || (booking as any).FinalPrice || 0;
+  const courtName = booking.courtName || (booking as any).CourtName || "Đơn hàng";
+  const address = booking.address || (booking as any).Address || "Thông tin địa chỉ đang cập nhật";
+  const date = booking.date || (booking as any).Date || "N/A";
+  const phoneNumber = booking.phoneNumber || (booking as any).PhoneNumber || "N/A";
+  const slotsResponses = booking.slotsResponses || (booking as any).SlotsResponses || [];
+  const urlMap = booking.urlMap || (booking as any).UrlMap;
 
   return (
     <div className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden group mb-6">
@@ -65,11 +73,11 @@ export function BookingCard({ booking, onCancelClick, onViewDetail }: BookingCar
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
             <h3 className="text-xl font-black text-gray-900 mb-1 group-hover:text-[#00897B] transition-colors">
-              {booking.courtName || "Sân Cầu Lông"}
+              {courtName}
             </h3>
             <div className="flex items-center gap-1.5 text-gray-400 text-sm">
               <MapPin size={14} />
-              <span>{booking.courtAddress || "Địa chỉ chưa cập nhật"}</span>
+              <span>{address}</span>
             </div>
           </div>
           <div className={cn(
@@ -82,27 +90,48 @@ export function BookingCard({ booking, onCancelClick, onViewDetail }: BookingCar
         </div>
 
         {/* Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100/50 flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Ngày</span>
+            <span className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Ngày đặt</span>
             <div className="flex items-center gap-2 font-bold text-gray-700">
               <Calendar size={16} className="text-[#00897B]" />
-              <span>{booking.date}</span>
+              <span>{date}</span>
             </div>
           </div>
           <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100/50 flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Giờ</span>
+            <span className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Liên hệ</span>
             <div className="flex items-center gap-2 font-bold text-gray-700">
-              <Clock size={16} className="text-[#00897B]" />
-              <span>{booking.startTime} - {booking.endTime}</span>
+              <Phone size={16} className="text-[#00897B]" />
+              <span>{phoneNumber}</span>
             </div>
           </div>
-          <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100/50 flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Sân con</span>
-            <div className="flex items-center gap-2 font-bold text-gray-700">
-              <Layout size={16} className="text-[#00897B]" />
-              <span>{booking.subCourtName}</span>
-            </div>
+        </div>
+
+        {/* Slots List */}
+        <div className="space-y-3 mb-8">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Danh sách Slot ({slotsResponses.length})</p>
+          <div className="flex flex-wrap gap-2">
+            {slotsResponses.length > 0 ? (
+              slotsResponses.map((slot: any) => (
+                <div 
+                  key={slot.slotId || slot.SlotId}
+                  className="px-4 py-2 bg-emerald-50/50 rounded-xl border border-emerald-100 flex items-center gap-3"
+                >
+                  <Clock size={14} className="text-emerald-500" />
+                  <span className="text-xs font-black text-[#0B2421]">
+                    {(slot.startTime || slot.StartTime || "").slice(0, 5)} - {(slot.endTime || slot.EndTime || "").slice(0, 5)}
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-600">
+                    {(slot.price || slot.Price || 0).toLocaleString()}đ
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center gap-2 text-gray-400 italic text-sm ml-1">
+                <Clock size={14} />
+                <span>Không có thông tin slot</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -110,42 +139,35 @@ export function BookingCard({ booking, onCancelClick, onViewDetail }: BookingCar
         <div className="flex flex-col md:flex-row justify-between items-center pt-6 border-t border-gray-50 gap-6">
           <div className="flex flex-col">
             <span className="text-2xl font-black text-[#00897B]">
-              {booking.price?.toLocaleString()}đ
+              {finalPrice.toLocaleString()}đ
             </span>
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
-              #{booking.bookingId?.substring(0, 8)} • {booking.createdAt}
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter flex items-center gap-1">
+              <Hash size={10} />
+              Mã đơn: {id.toString().substring(0, 8)}
             </span>
           </div>
 
           <div className="flex items-center gap-4 w-full md:w-auto">
-            {booking.status === "Banked" && (
+            {["Banked", "Pending"].includes(status) && (
               <Button
                 variant="ghost"
-                onClick={() => onCancelClick?.(booking.id)}
+                onClick={() => onCancelClick?.(id)}
                 className="flex-1 md:flex-none text-red-500 font-bold text-sm hover:text-red-600 hover:bg-red-50 transition-colors px-4 rounded-2xl"
               >
-                Hủy đặt sân
+                Hủy đơn
               </Button>
             )}
             
-            {booking.status === "Complete" && (
-              <Button
+            {urlMap && (
+              <Button 
                 variant="ghost"
-                className="flex-1 md:flex-none flex items-center justify-center gap-2 text-gray-500 font-bold text-sm hover:text-gray-700 hover:bg-gray-100 transition-colors px-4 rounded-2xl"
+                onClick={() => window.open(urlMap, "_blank")}
+                className="flex-1 md:flex-none group/btn hover:bg-emerald-50 rounded-2xl h-12 px-6"
               >
-                <Flag size={14} />
-                Báo cáo
+                <span className="font-bold text-[#00897B] mr-2">Bản đồ</span>
+                <MapPin size={18} className="text-[#00897B]" />
               </Button>
             )}
-
-            <Button 
-              variant="ghost"
-              onClick={() => onViewDetail?.(booking.id)}
-              className="flex-1 md:flex-none group/btn hover:bg-emerald-50 rounded-2xl h-12 px-6"
-            >
-              <span className="font-bold text-[#00897B] mr-2">Xem chi tiết</span>
-              <ChevronRight size={18} className="text-[#00897B] group-hover/btn:translate-x-1 transition-transform" />
-            </Button>
           </div>
         </div>
       </div>

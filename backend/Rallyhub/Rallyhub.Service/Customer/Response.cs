@@ -24,8 +24,11 @@ public class Response
     public class LikeListResponse
     {
         public Guid CourtId  { get; set; }
-        public string CourtName { get; set; } = null!;
-        public string CourtAddress { get; set; } = null!;
+        public string CourtName { get; set; }
+        public string CourtAddress { get; set; }
+        public string PictureUrl  { get; set; } 
+        public decimal? Price { get; set; }
+        public double Rating  { get; set; }
     }
 
     public class BookingResponse

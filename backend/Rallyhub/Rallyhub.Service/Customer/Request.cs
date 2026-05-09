@@ -33,8 +33,6 @@ public class Request
     public class AddCourtLikeListRequest
     {
         public Guid CourtId  { get; set; }
-        public required string CourtName  { get; set; }
-        public required string CourtAddress   { get; set; }
     }
     public class DeteleCourtLikeListRequest
     {
