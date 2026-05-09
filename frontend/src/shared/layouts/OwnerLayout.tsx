@@ -2,7 +2,6 @@ import { Outlet, useNavigate, NavLink, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Building2, 
-  CalendarCheck, 
   Settings, 
   Menu,
   Bell,
@@ -18,8 +17,7 @@ import { useAuthStore } from "@/features/auth/store";
 const NAV_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/owner" },
   { label: "Quản lý cơ sở", icon: Building2, path: "/owner/courts" },
-  { label: "Quản lý sân con", icon: LayoutGrid, path: "/owner/sub-courts" },
-  { label: "Quản lý lịch sân", icon: CalendarCheck, path: "/owner/schedules" },
+  { label: "Quản lý sân", icon: LayoutGrid, path: "/owner/sub-courts" },
   { label: "Cài đặt", icon: Settings, path: "/owner/settings" },
 ];
 
