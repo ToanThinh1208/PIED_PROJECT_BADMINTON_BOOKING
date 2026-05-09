@@ -10,7 +10,7 @@ public class Response
         public string Status { get; set; } = null!;
         public double AverageRating { get; set; }
         public string PictureUrl { get; set; } = null!;
-        public decimal DefaultPrice { get; set; }
+        public decimal? DefaultPrice { get; set; }
         
     }
     public class SearchCourtByIdResponse : SearchCourtResponse
