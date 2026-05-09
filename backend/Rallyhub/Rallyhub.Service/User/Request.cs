@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace Rallyhub.Service.User;
 
@@ -6,14 +7,18 @@ public class Request
 {
     public class UserRequest
     {
-        public required string FirstName { get; set; }
-        public required string LastName { get; set; }
+        [Required]
+        public string FirstName { get; set; } = null!;
+        [Required]
+        public string LastName { get; set; } = null!;
         public string? PhoneNumber { get; set; }
     }
     public class RegisterRequest : UserRequest
     {
-        public required string Email { get; set; }
-        public required string  RawPassword { get; set; }
+        [Required]
+        public string Email { get; set; } = null!;
+        [Required]
+        public string RawPassword { get; set; } = null!;
     }
 
     public class UpdateProfile
