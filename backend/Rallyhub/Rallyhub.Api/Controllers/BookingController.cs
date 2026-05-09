@@ -51,4 +51,11 @@ public class BookingController: ControllerBase
         var result = await _bookingService.CanCelBooking(bookingId);
         return Ok(ApiResponseFactory.SuccessResponse(result,"Success you!", HttpContext.TraceIdentifier));
     }
+    [HttpGet("GetBooking")]
+    public async Task<IActionResult> GetBooking([FromQuery] Service.Base.Request.PagingDay2 pagingDay2)
+    {
+        var result = await _bookingService.GetBooking(pagingDay2);
+        return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
+            , HttpContext.TraceIdentifier));
+    }
 }

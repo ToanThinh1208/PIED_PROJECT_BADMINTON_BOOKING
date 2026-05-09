@@ -34,4 +34,24 @@ public class Response
         public decimal RefundAmount { get; set; }
         public string Message { get; set; } = null!;
     }
+    public class GetBookingResponse
+    {
+        public Guid BookingId { get; set; }
+        public decimal FinalPrice { get; set; }
+        public string Status { get; set; } = null!;
+        public string CourtName { get; set; } = null!;
+        public string Address { get; set; } = null!;
+        public IEnumerable<SlotsResponse> SlotsResponses = new List<SlotsResponse>();
+        public string PhoneNumber { get; set; } = null!;
+        public string UrlMap { get; set; } = null!;
+    }
+
+    public class SlotsResponse
+    {
+        public Guid SlotId { get; set; }
+        public TimeOnly StartTime { get; set; }
+        public TimeOnly EndTime { get; set; }
+        public decimal Price { get; set; }
+        
+    }
 }
