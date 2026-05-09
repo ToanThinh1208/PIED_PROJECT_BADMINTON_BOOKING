@@ -13,11 +13,10 @@ import type {
 export const bookingsService = {
   // Booking Management
   getAll: async (params: GetBookingHistoryRequest = { pageIndex: 1, pageSize: 10 }): Promise<BookingHistoryResponse> => {
-    return apiClient.get(API_ENDPOINTS.BOOKING.GET_ALL, {
+    return apiClient.get(API_ENDPOINTS.CUSTOMER.GET_ALL_BOOKING, {
       params: { 
         PageIndex: params.pageIndex, 
         PageSize: params.pageSize,
-        Date: params.date 
       },
     }) as Promise<BookingHistoryResponse>;
   },
