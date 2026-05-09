@@ -1,4 +1,4 @@
-import { Outlet, useNavigate, NavLink } from "react-router-dom";
+import { Outlet, useNavigate, NavLink, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Building2, 
@@ -31,10 +31,28 @@ export default function OwnerLayout() {
   // Đồng bộ hóa dữ liệu profile
   const { isLoading: isProfileLoading } = useMe();
 
+  const location = useLocation();
+
   if (!accessToken || !user) {
     navigate("/login");
     return null;
   }
+
+  // Logic xác định item nào đang active để giải quyết vấn đề chồng chéo path
+  const getIsActive = (itemPath: string) => {
+    const currentPath = location.pathname;
+    
+    // Nếu là trang chủ owner
+    if (itemPath === "/owner") return currentPath === "/owner";
+    
+    // Nếu đang ở trang xem lịch hoặc calendar chi tiết của sân con
+    if (currentPath.includes("/sub-courts/") && (currentPath.includes("/schedule") || currentPath.includes("/calendar"))) {
+      return itemPath === "/owner/schedules";
+    }
+
+    // Các trường hợp khác dùng mặc định của react-router
+    return currentPath.startsWith(itemPath);
+  };
 
   if (isProfileLoading && !user) {
     return (
@@ -67,26 +85,26 @@ export default function OwnerLayout() {
         </div>
 
         <nav className="flex-1 px-3 space-y-1 mt-4">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === "/owner"}
-              className={({ isActive }) => cn(
-                "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group",
-                isActive 
-                  ? "bg-emerald-50 text-emerald-600 shadow-sm" 
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-              )}
-            >
-              {({ isActive }) => (
+          {NAV_ITEMS.map((item) => {
+            const isActive = getIsActive(item.path);
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group",
+                  isActive 
+                    ? "bg-emerald-50 text-emerald-600 shadow-sm" 
+                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                )}
+              >
                 <>
                   <item.icon size={20} className={cn("shrink-0", isActive ? "text-emerald-600" : "text-gray-400 group-hover:text-gray-900")} />
                   {isSidebarOpen && <span className="font-semibold text-sm">{item.label}</span>}
                 </>
-              )}
-            </NavLink>
-          ))}
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div className="p-8 mt-auto flex justify-center">

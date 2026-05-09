@@ -4,7 +4,7 @@ import type { PendingCourt, GetPendingCourtsRequest, RejectCourtRequest } from "
 
 export const adminCourtService = {
   getAllPendingCourts: async (params: GetPendingCourtsRequest) => {
-    return apiClient.get<PaginatedResponse<PendingCourt>>("/api/Admin/GetAllPendingCourts", {
+    return apiClient.get<PaginatedResponse<PendingCourt>>("/Admin/GetAllPendingCourts", {
       params: {
         PageIndex: params.pageIndex,
         PageSize: params.pageSize,
@@ -14,10 +14,10 @@ export const adminCourtService = {
   },
 
   approveCourt: async (courtId: string) => {
-    return apiClient.patch(`/api/Admin/ApprovePendingCourt/${courtId}`);
+    return apiClient.patch(`/Admin/ApprovePendingCourt/${courtId}`);
   },
 
   rejectCourt: async (courtId: string, data: RejectCourtRequest) => {
-    return apiClient.patch(`/api/Admin/RejectPendingCourt/${courtId}`, data);
+    return apiClient.patch(`/Admin/RejectPendingCourt/${courtId}`, data);
   },
 };

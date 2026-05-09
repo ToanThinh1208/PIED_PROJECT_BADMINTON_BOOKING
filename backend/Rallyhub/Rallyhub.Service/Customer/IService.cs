@@ -1,8 +1,8 @@
-﻿namespace Rallyhub.Service.Customer;
+namespace Rallyhub.Service.Customer;
 
 public interface IService
 {
-    public Task<string> OwnerRequest(Request.OwnerRequestRequest request);
+    public Task<string> OwnerRequest(Request.OwnerRequestRequest model);
     public Task<Base.Response.PageResult<Response.GetOwnerRequestResponse>> GetOwnerRequest(Base.Request.PagingRequest request);
    // public Task<bool> CheckCancelBooking(Request.CancelBooking request);
     //public Task CancelBooking(Request.CancelBooking request);

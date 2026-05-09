@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Ocsp;
 using Rallyhub.Repository;
@@ -23,7 +23,7 @@ public class Service : IService
         _mailService = mailService;
     }
 
-    public async Task<string> OwnerRequest(Request.OwnerRequestRequest request)
+    public async Task<string> OwnerRequest(Request.OwnerRequestRequest model)
     {
         var userId = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "UserId")?.Value;
         var userIdGuid = Guid.Parse(userId!);
@@ -34,31 +34,31 @@ public class Service : IService
         var custmerIdGuild = Guid.Parse(customerId!);
         var customer = _dbContext.Customers.FirstOrDefault(x => x.Id == custmerIdGuild);
     
-        if (user?.FirstName != request.FirstName || user?.LastName != request.LastName)
+        if (user?.FirstName != model.FirstName || user?.LastName != model.LastName)
         {
-            throw new Exception($"Tên {request.FirstName} {request.FirstName} không khớp với tên của tài khoản này");
+            throw new Exception($"Tên {model.FirstName} {model.LastName} không khớp với tên của tài khoản này");
         }
-        var isExistIdentityNumber = await _dbContext.OwnerRequests.AnyAsync(x => x.IdentityNumber == request.IdentityNumber);
+        var isExistIdentityNumber = await _dbContext.OwnerRequests.AnyAsync(x => x.IdentityNumber == model.IdentityNumber);
         if (isExistIdentityNumber)
         {
             throw new Exception("Identity number already exists");
         }
         var ownerRequest = new OwnerRequest()
         {
-            BusinessName = request.BusinessName,
-            TaxCode = request.TaxCode,
-            BusinessAddress = request.BusinessAddress,
-            BusinessLicenseUrl = await _mediaService.UploadImageAsync(request.BusinessLicenseUrl),
-            IdentityNumber = request.IdentityNumber,
-            IdentityCardFrontUrl = await _mediaService.UploadImageAsync(request.IdentityCardFrontUrl),
-            IdentityCardBackUrl = await _mediaService.UploadImageAsync(request.IdentityCardBackUrl),
+            BusinessName = model.BusinessName,
+            TaxCode = model.TaxCode,
+            BusinessAddress = model.BusinessAddress,
+            BusinessLicenseUrl = await _mediaService.UploadImageAsync(model.BusinessLicenseUrl),
+            IdentityNumber = model.IdentityNumber,
+            IdentityCardFrontUrl = await _mediaService.UploadImageAsync(model.IdentityCardFrontUrl),
+            IdentityCardBackUrl = await _mediaService.UploadImageAsync(model.IdentityCardBackUrl),
             CreatedAt = DateTimeOffset.UtcNow,
             CustomerId = custmerIdGuild,
             Status = "Pending",
         };
         _dbContext.OwnerRequests.Add(ownerRequest);
         var result = await _dbContext.SaveChangesAsync();
-        if (result > 1)
+        if (result >= 1)
         {
             return "Success";
         }

@@ -469,7 +469,7 @@ public class Service: IService
         return "Hủy đặt sân thành công";
     }
 
-    public async Task<Response.GetBookingResponse> GetBooking(Base.Request.PagingDay2 pagingDay2)
+    public async Task<Base.Response.PageResult<Response.GetBookingResponse>> GetBooking(Base.Request.PagingDay2 pagingDay2)
     {
         var customerIdClaim = _httpContext.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "CustomerId")?.Value;
         if (customerIdClaim == null)
@@ -529,7 +529,7 @@ public class Service: IService
             PageSize = pagingDay2.PageSize,
             TotalItems = total
         };
-        
-        throw new NotImplementedException();
+
+        return result;
     }
 }
