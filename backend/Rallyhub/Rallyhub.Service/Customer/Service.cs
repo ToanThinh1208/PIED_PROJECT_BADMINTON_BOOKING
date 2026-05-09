@@ -201,11 +201,11 @@ public class Service : IService
             CourtName = x.Court.Name,
             CourtAddress = x.Court.Address,
             PictureUrl = x.Court.PictureUrl,
-            Rating = _dbContext.Feedbacks.Where(y => y.CourtId == x.CourtId).Average(y => (double)y.Rating),
+            Rating = _dbContext.Feedbacks.Where(y => y.CourtId == x.CourtId).Average(y => (double?)y.Rating)?? 5,
             Price = _dbContext.SubCourts
                 .Where(y => y.CourtId == x.CourtId && y.IsDeleted == false)
                 .SelectMany(y => y.ConfigSlots.Where(s => s.IsDeleted == false))
-                .Min(s => (decimal?)s.Price),
+                .Min(s => (decimal?)s.Price) ?? 0
         });
         var listResult = await selectQuery.ToListAsync();
         return new Base.Response.PageResult<Response.LikeListResponse>()
@@ -263,6 +263,11 @@ public class Service : IService
         var courtLike = await _dbContext.LikeListDetails.FirstOrDefaultAsync(x => 
             x.CourtId == request.CourtId && x.CustomerId == customerId);
         if (courtLike == null)
+        {
+            throw new Exception("Sân không nằm trong danh sách yêu thích");
+        }
+
+        if (courtLike.IsDeleted)
         {
             throw new Exception("Sân không nằm trong danh sách yêu thích");
         }
