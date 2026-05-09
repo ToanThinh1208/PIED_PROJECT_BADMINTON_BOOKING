@@ -533,7 +533,7 @@ public class Service : IService
             .ToListAsync();
         
         var validStart = configSlots.Any(x => x.StartTime == request.StartTime);
-        var validEnd = configSlots.Any(x => x.EndTime == request.StartTime);
+        var validEnd = configSlots.Any(x => x.EndTime == request.EndTime);
 
         if (!validStart || !validEnd)
         {
@@ -740,7 +740,8 @@ public class Service : IService
             {
                 StartTime = ex.StartTime,
                 EndTime = ex.EndTime,
-                IsAvailable = false
+                IsAvailable = false,
+                Reason = ex.Reason
             });
         }
         
@@ -754,9 +755,14 @@ public class Service : IService
         foreach (var slot in result)
         {
             if (!slot.IsAvailable) continue;
-            slot.IsAvailable = !bookedSlots.Any(b =>
+            var isBooked = bookedSlots.Any(b =>
                 b.StartTime < slot.EndTime &&
                 b.EndTime > slot.StartTime);
+            if (isBooked)
+            {
+                slot.IsAvailable = false;
+                slot.Reason = "Đã được khách đặt";
+            }
         }
         return result.OrderBy(x => x.StartTime).ToList();
     }
