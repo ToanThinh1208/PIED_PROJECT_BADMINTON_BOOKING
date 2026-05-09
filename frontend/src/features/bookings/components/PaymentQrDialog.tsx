@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useCancelBooking } from "../hooks/useBookingOperations";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,15 @@ export function PaymentQrDialog({
   onSuccess
 }: PaymentQrDialogProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const cancelBooking = useCancelBooking();
+
+  // Reset success state when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setIsSuccess(false);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && bookingResponse?.expiredAt) {
@@ -43,8 +53,20 @@ export function PaymentQrDialog({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleCancel = () => {
+    if (bookingResponse?.bookingId && !isSuccess) {
+      cancelBooking.mutate(bookingResponse.bookingId);
+    }
+    onClose();
+  };
+
+  const handleSuccess = () => {
+    setIsSuccess(true);
+    onSuccess();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent className="max-w-[60%] sm:max-w-[400px] h-[600px] overflow-y-auto p-6 bg-white rounded-3xl border-none shadow-2xl">
         <DialogHeader className="text-center mb-4">
           <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
@@ -98,14 +120,14 @@ export function PaymentQrDialog({
 
             <div className="pt-1 flex flex-col gap-2">
               <Button 
-                onClick={onSuccess}
+                onClick={handleSuccess}
                 className="w-full h-12 bg-[#0B2421] hover:bg-[#1a3a36] text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
               >
                 Tôi đã chuyển khoản
               </Button>
               <Button 
                 variant="ghost" 
-                onClick={onClose}
+                onClick={handleCancel}
                 className="w-full h-12 text-gray-400 hover:text-gray-600 font-black text-[10px] uppercase tracking-widest"
               >
                 Hủy đơn
