@@ -200,6 +200,12 @@ public class Service : IService
             CourtId = x.CourtId,
             CourtName = x.Court.Name,
             CourtAddress = x.Court.Address,
+            PictureUrl = x.Court.PictureUrl,
+            Rating = _dbContext.Feedbacks.Where(y => y.CourtId == x.CourtId).Average(y => (double?)y.Rating)?? 5,
+            Price = _dbContext.SubCourts
+                .Where(y => y.CourtId == x.CourtId && y.IsDeleted == false)
+                .SelectMany(y => y.ConfigSlots.Where(s => s.IsDeleted == false))
+                .Min(s => (decimal?)s.Price) ?? 0
         });
         var listResult = await selectQuery.ToListAsync();
         return new Base.Response.PageResult<Response.LikeListResponse>()
@@ -223,7 +229,6 @@ public class Service : IService
         if (court == null)
         {
             throw new Exception("Sân không tồn tại trên hệ thống");
-
         }
         var likeList = await _dbContext.LikeListDetails
             .FirstOrDefaultAsync(x => 
@@ -241,16 +246,13 @@ public class Service : IService
             }
             throw new Exception("Đã tồn tại trong danh sách yêu thích");
         }
-        if (court.Name != request.CourtName || court.Address != request.CourtAddress)
-        {
-            throw new Exception("Error tên hoặc địa chỉ không khớp");
-        }
         var courtLike = new LikeListDetail()
         {
             Id = Guid.NewGuid(),
             CustomerId = customerId,
             CourtId = request.CourtId,
         };
+        courtLike.CreatedAt = DateTimeOffset.UtcNow;
         await _dbContext.LikeListDetails.AddAsync(courtLike);
         await _dbContext.SaveChangesAsync();
     }
@@ -261,6 +263,11 @@ public class Service : IService
         var courtLike = await _dbContext.LikeListDetails.FirstOrDefaultAsync(x => 
             x.CourtId == request.CourtId && x.CustomerId == customerId);
         if (courtLike == null)
+        {
+            throw new Exception("Sân không nằm trong danh sách yêu thích");
+        }
+
+        if (courtLike.IsDeleted)
         {
             throw new Exception("Sân không nằm trong danh sách yêu thích");
         }
