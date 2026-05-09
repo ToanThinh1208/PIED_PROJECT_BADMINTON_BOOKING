@@ -19,7 +19,7 @@ public class OwnerController : ControllerBase
     }
     
     [HttpPost("OwnerCreateCourt")]  
-    public async Task<IActionResult> CreateCourt([FromBody]Request.CreateCourtRequest request)  
+    public async Task<IActionResult> CreateCourt([FromForm]Request.CreateCourtRequest request)  
     {  
         var result = await _ownerService.CreateCourt(request);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Waiting for Admin accept"   

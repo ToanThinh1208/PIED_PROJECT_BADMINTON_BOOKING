@@ -77,9 +77,9 @@ public class AdminController: ControllerBase
     }  
   
     [HttpPatch("RejectPendingCourt/{courtId}")]  
-    public async Task<IActionResult> AdminRejectPendingCourt([FromBody]Guid courtId, string? resonReject)  
+    public async Task<IActionResult> AdminRejectPendingCourt([FromBody]Guid courtId, string? reasonReject)  
     {  
-        var result = await _adminService.AdminRejectPendingCourt(courtId, resonReject);  
+        var result = await _adminService.AdminRejectPendingCourt(courtId, reasonReject);  
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success you!", HttpContext.TraceIdentifier));  
     }  
   

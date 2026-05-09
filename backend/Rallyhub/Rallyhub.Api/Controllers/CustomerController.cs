@@ -29,7 +29,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpGet("GetOwnerRequest")]
-    public async Task<IActionResult> GetOwnerRequest([FromQuery] Service.Base.Request.PagingRequest request)
+    public async Task<IActionResult> GetOwnerRequest([FromForm] Service.Base.Request.PagingRequest request)
     {
 
         var result = await _customerService.GetOwnerRequest(request);
