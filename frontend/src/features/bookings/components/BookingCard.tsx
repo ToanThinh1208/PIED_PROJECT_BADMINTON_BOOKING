@@ -9,7 +9,6 @@ import {
   Hash
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import type { GetBookingResponse } from "../types";
