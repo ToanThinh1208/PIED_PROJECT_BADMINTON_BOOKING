@@ -477,7 +477,7 @@ public class Service: IService
             throw new Exception("Không tìm thấy danh tính của Customer");
         }
         var customerId = Guid.Parse(customerIdClaim);
-        var user = _dbContext.Users
+        var user = await _dbContext.Users
             .Include(x => x.Customer)
             .FirstOrDefaultAsync(x => x.Customer!.Id == customerId);
         if (user == null)
@@ -519,7 +519,7 @@ public class Service: IService
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,
                 Price = x.Price
-            }),
+            }).ToList(),
         });
         var list = await  select.ToListAsync();
         var result = new Base.Response.PageResult<Response.GetBookingResponse>()

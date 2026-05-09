@@ -41,7 +41,7 @@ public class Response
         public string Status { get; set; } = null!;
         public string CourtName { get; set; } = null!;
         public string Address { get; set; } = null!;
-        public IEnumerable<SlotsResponse> SlotsResponses = new List<SlotsResponse>();
+        public List<SlotsResponse> SlotsResponses { get; set; } = new();
         public string PhoneNumber { get; set; } = null!;
         public string UrlMap { get; set; } = null!;
     }
