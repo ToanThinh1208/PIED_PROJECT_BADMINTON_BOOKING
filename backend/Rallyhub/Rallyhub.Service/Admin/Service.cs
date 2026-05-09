@@ -463,9 +463,9 @@ public class Service: IService
             Status = x.Status,
             CreatedAt = x.CreatedAt,
             // Thông tin customer từ User entity
-            FirstName = "DEBUG: " + x.Customer.User.FirstName,
-            LastName = "DEBUG: " + x.Customer.User.LastName,
-            Email = "DEBUG: " + x.Customer.User.Email,
+            FirstName = x.Customer.User.FirstName,
+            LastName = x.Customer.User.LastName,
+            Email = x.Customer.User.Email,
             PhoneNumber = x.Customer.User.PhoneNumber,
             AvatarUrl = x.Customer.User.AvatarUrl,
         });
