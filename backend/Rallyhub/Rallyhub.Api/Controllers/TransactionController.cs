@@ -18,19 +18,19 @@ public class TransactionController : ControllerBase
     
     [HttpGet("GetTransaction")]
     [Authorize(Policy = JwtExtensions.CustomerOrOwnerPolicy)]
-    public async Task<IActionResult> GetTransactionResponse([FromBody] Service.Base.Request.PagingDay paginDay)
+    public async Task<IActionResult> GetTransaction([FromQuery] Service.Base.Request.PagingDay paginDay)
     {
-        await _transactionService.GetTransactionResponse(paginDay);
+        await _transactionService.GetTransaction(paginDay);
         return Ok(ApiResponseFactory.SuccessResponse( "Success","Success" 
             , HttpContext.TraceIdentifier));
     }
     
     [HttpGet("AdminGetTransaction")]
     [Authorize(Policy = JwtExtensions.AdminPolicy)]
-    public async Task<IActionResult> AdminGetTransactionResponse([FromBody] Guid? userId ,Service.Base.Request.PagingDay paginDay)
+    public async Task<IActionResult> AdminGetTransaction([FromQuery] Guid? userId ,Service.Base.Request.PagingDay paginDay)
     {
 
-        await _transactionService.AdminGetTransactionResponse(userId, paginDay);
+        await _transactionService.AdminGetTransaction(userId, paginDay);
         return Ok(ApiResponseFactory.SuccessResponse( "Success","Success" 
             , HttpContext.TraceIdentifier));
     }
