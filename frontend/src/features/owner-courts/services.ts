@@ -38,7 +38,7 @@ export const ownerCourtService = {
     }
 
     return apiClient.post("/Owner/OwnerCreateCourt", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: { "Content-Type": undefined },
     });
   },
 

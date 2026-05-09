@@ -11,7 +11,7 @@ export function useRejectOwnerRequest() {
       ownerRequestId,
       rejectReason,
     }: RejectOwnerRequestParams) => {
-      const response = await apiClient.get("/api/Admin/RejectCreateOwner", {
+      const response = await apiClient.patch("/Admin/RejectCreateOwner", null, {
         params: { ownerRequestId, rejectReason },
       });
       return response;
