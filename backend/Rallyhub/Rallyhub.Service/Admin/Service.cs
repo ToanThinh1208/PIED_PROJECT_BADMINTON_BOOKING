@@ -575,7 +575,7 @@ public class Service: IService
         }
     }
     
-    public async Task<Base.Response.PageResult<Response.GetPendingCourtsResponse>> GetPendingCourts  
+    public async Task<Base.Response.PageResult<Response.GetPendingCourtsResponse>> GetPendingCourts
     (Request.GetPendingCourtsRequest request)  
 {  
     if (request.PageIndex <= 0)  

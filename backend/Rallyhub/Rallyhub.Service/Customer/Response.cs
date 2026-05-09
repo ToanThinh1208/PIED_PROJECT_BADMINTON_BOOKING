@@ -26,8 +26,10 @@ public class Response
         public Guid CourtId  { get; set; }
         public string CourtName { get; set; }
         public string CourtAddress { get; set; }
+        public string PictureUrl  { get; set; } 
+        public decimal? Price { get; set; }
+        public double Rating  { get; set; }
     }
-
     public class BookingResponse
     {
         public Guid Id { get; set; }
