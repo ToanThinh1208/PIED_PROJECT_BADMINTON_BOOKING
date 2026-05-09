@@ -39,9 +39,9 @@ public class BookingController: ControllerBase
             , HttpContext.TraceIdentifier));
     }
     [HttpPatch("BookingRefund")]
-    public async Task<IActionResult> BookingRefund(Request.AdminRefundRequest request)
+    public async Task<IActionResult> BookingRefund(Guid bookingId)
     {
-        var result = await _bookingService.BookingRefund(request);
+        var result = await _bookingService.BookingRefund(bookingId);
         return Ok(ApiResponseFactory.SuccessResponse(result, "Success you!", HttpContext.TraceIdentifier));
     }
     

@@ -350,7 +350,7 @@ public class Service: IService
             }).ToList(),
         };
     }
-    public async Task<Response.AdminRefundResponse> BookingRefund (Request.AdminRefundRequest request)
+    public async Task<Response.BookingRefundResponse> BookingRefund (Guid bookingId)
     {
         var customerIdClaim = _httpContext.HttpContext.User.Claims
             .FirstOrDefault(x => x.Type == "CustomerId")?.Value;
@@ -372,7 +372,7 @@ public class Service: IService
                 .ThenInclude(x => x.SubCourt)
                     .ThenInclude(x => x.Court)
             .Include(x => x.Customer)
-            .FirstOrDefaultAsync(x => x.Id == request.BookingId);
+            .FirstOrDefaultAsync(x => x.Id == bookingId);
         if (booking == null)
         {
             throw new Exception("Không tìm thấy đơn đã sân");
@@ -423,7 +423,7 @@ public class Service: IService
         //     Body = $"Đã hoàn tiền thành công" + "\n"
         //         + $"{request.ImageUrl}"
         // });
-        return new Response.AdminRefundResponse()
+        return new Response.BookingRefundResponse()
         {
             BookingId = booking.Id,
             Status = "Refund",
@@ -477,7 +477,7 @@ public class Service: IService
             throw new Exception("Không tìm thấy danh tính của Customer");
         }
         var customerId = Guid.Parse(customerIdClaim);
-        var user = _dbContext.Users
+        var user = await _dbContext.Users
             .Include(x => x.Customer)
             .FirstOrDefaultAsync(x => x.Customer!.Id == customerId);
         if (user == null)
@@ -519,7 +519,7 @@ public class Service: IService
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,
                 Price = x.Price
-            }),
+            }).ToList(),
         });
         var list = await  select.ToListAsync();
         var result = new Base.Response.PageResult<Response.GetBookingResponse>()

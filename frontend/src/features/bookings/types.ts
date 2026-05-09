@@ -19,8 +19,27 @@ export interface BookingHistoryItem {
   reviewSnippet?: string;
 }
 
+export interface SlotsResponse {
+  slotId: string;
+  startTime: string;
+  endTime: string;
+  price: number;
+}
+
+export interface GetBookingResponse {
+  bookingId: string;
+  finalPrice: number;
+  status: string;
+  courtName: string;
+  address: string;
+  slotsResponses: SlotsResponse[];
+  phoneNumber: string;
+  urlMap: string;
+  date: string; // Added if missing from docs but likely present
+}
+
 export interface BookingHistoryResponse {
-  items: BookingHistoryItem[];
+  items: GetBookingResponse[];
   totalItems: number;
   pageIndex: number;
   pageSize: number;
@@ -34,6 +53,56 @@ export interface CheckCancelResponse {
 
 // ─── UI-specific types ───────────────────────────────────
 export type FilterStatus = "all" | "ongoing" | "completed" | "cancelled";
+
+// ─── API Types ───────────────────────────────────────────
+
+export interface SubCourt {
+  subCourtId: string;
+  courtId: string;
+  name: string;
+}
+
+export interface AvailableSlot {
+  startTime: string; // HH:mm:ss
+  endTime: string;   // HH:mm:ss
+  price: number;
+  isAvailable: boolean;
+}
+
+export interface SlotRequest {
+  startTime: string;
+  endTime: string;
+}
+
+export interface CreateBookingRequest {
+  subCourtId: string;
+  date: string; // yyyy-MM-dd
+  code?: string;
+  campaignId?: string;
+  slots: SlotRequest[];
+}
+
+export interface BookingDetailItem {
+  bookingDetailId: string;
+  startTime: string;
+  endTime: string;
+  price: number;
+}
+
+export interface CreateBookingResponse {
+  bookingId: string;
+  totalPrice: number;
+  expiredAt: string;
+  status: string;
+  slots: BookingDetailItem[];
+  qrCodeUrl: string;
+}
+
+export interface GetBookingHistoryRequest {
+  pageIndex?: number;
+  pageSize?: number;
+  date?: string;
+}
 
 // ─── Constants ───────────────────────────────────────────
 export const DEFAULT_PAGE_SIZE = 10;

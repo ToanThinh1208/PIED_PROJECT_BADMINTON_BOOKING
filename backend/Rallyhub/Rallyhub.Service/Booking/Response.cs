@@ -27,7 +27,7 @@ public class Response
         public List<BookingDetailItem> Slots { get; set; } = new();
         public string QrCodeUrl { get; set; } = null!;
     }
-    public class AdminRefundResponse
+    public class BookingRefundResponse
     {
         public Guid BookingId { get; set; }
         public string Status { get; set; } = null!;
@@ -41,7 +41,7 @@ public class Response
         public string Status { get; set; } = null!;
         public string CourtName { get; set; } = null!;
         public string Address { get; set; } = null!;
-        public IEnumerable<SlotsResponse> SlotsResponses = new List<SlotsResponse>();
+        public List<SlotsResponse> SlotsResponses { get; set; } = new();
         public string PhoneNumber { get; set; } = null!;
         public string UrlMap { get; set; } = null!;
     }

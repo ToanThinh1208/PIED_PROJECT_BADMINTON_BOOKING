@@ -15,7 +15,7 @@ import { FavoritesPage } from "@/features/favorites";
 import { AdminLayout } from "@/shared/layouts/AdminLayout";
 import { AdminDashboard, OwnerDashboard } from "@/features/dashboard";
 import { CourtSearchPage } from "@/features/courts";
-import { BookingHistoryPage } from "@/features/bookings";
+import { BookingHistoryPage, BookingPage } from "@/features/bookings";
 import { OwnerRequestsPage } from "@/features/admin-owner-requests";
 import OwnerLayout from "@/shared/layouts/OwnerLayout";
 import OwnerCourtsPage from "@/features/owner-courts/pages/OwnerCourtsPage";
@@ -35,6 +35,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "courts", element: <CourtSearchPage /> },
+      { path: "courts/:id/booking", element: <BookingPage /> },
       { path: "matching", element: <ComingSoonPage /> },
       {
         path: "login",
