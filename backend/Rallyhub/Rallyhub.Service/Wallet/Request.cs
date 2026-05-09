@@ -8,4 +8,11 @@ public class Request
         public required string BankAccount { get; set; }
         public required string  BankAccountName { get; set; }
     }
+
+    // public class AddOrApartFromWalletRequest()
+    // {
+    //     public required Guid UserId;
+    //     public required decimal Amount;
+    //     public required string Type;
+    // }
 }

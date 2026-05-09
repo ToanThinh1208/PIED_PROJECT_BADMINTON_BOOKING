@@ -8,11 +8,15 @@ public class Service : IService
 {
     private readonly AppDbContext _dbcontext;
     private readonly IHttpContextAccessor _httpAccessor;
+    private readonly Wallet.IService _walletService;
+    private readonly Transaction.IService _transactionService;
 
-    public Service(AppDbContext dbContext, IHttpContextAccessor httpAccessor)
+    public Service(AppDbContext dbContext, IHttpContextAccessor httpAccessor,  Wallet.IService walletService,  Transaction.IService transactionService)
     {
         _dbcontext = dbContext;
         _httpAccessor = httpAccessor;
+        _walletService = walletService;
+        _transactionService = transactionService;
     }
     
     public async Task<string> CreateWithdrawalRequest(Request.CreateWithdrawalRequest request)
@@ -22,23 +26,6 @@ public class Service : IService
         var user = await _dbcontext.Users.FirstOrDefaultAsync(x => x.Id == userIdGuild);
         var wallet = await _dbcontext.Wallets.FirstOrDefaultAsync(x => x.UserId == userIdGuild);
         
-        if (wallet == null)
-        {
-            throw new Exception("Wallet not found");
-        }
-
-        if (wallet.BankName == null || wallet.BankAccount == null || wallet.BankAccountName == null)
-        {
-            throw new Exception("Fill your bank account");
-        }
-        if (request.Amount - wallet.Balance < 0)
-        {
-            throw new Exception("Balance of your wallet not enough");
-        }
-        if (request.Amount <= 0)
-        {
-            throw new Exception("Amount not valid");
-        }
 
         var newWithdrawal = new Repository.Entity.Withdrawal()
         {
@@ -49,18 +36,29 @@ public class Service : IService
             WalletId = wallet.Id,
             CreatedAt = DateTimeOffset.UtcNow
         };
-        wallet.Balance -= request.Amount;
-        
         _dbcontext.Withdrawals.Add(newWithdrawal);
-        var result = await _dbcontext.SaveChangesAsync();
-        if (result > 0)
+        var transactionI = new Transaction.Request.CreateTransactionRequest()
         {
-            return "Success invited withdrawal";
+            Type = Transaction.Request.TypeList.Withdrawal,
+            Amount = request.Amount,
+            BalanceBefore = wallet.Balance,
+            BalanceAfter =  wallet.Balance - request.Amount,
+            Status = "Success",
+            WalletId =  wallet.Id,
+        };
+        
+        if (!await _walletService.ApartBanlanceFromWallet(userIdGuild, request.Amount, "Wallet"))
+        {
+            throw new Exception("Wallet apart balance failed");
         }
-        return "Failure invited withdrawal";
+        if (!await _transactionService.CreateTransaction(transactionI))
+        {
+            throw new Exception("Error creating transaction");
+        }
+        return "Success create withdrawal";
     }
 
-    public async Task<Base.Response.PageResult<Response.GetWithdrawalResponse>> AdminGetWithdrawalRequest(Request.GetWithdrawalRequest request, Base.Request.Pagination pagination)
+    public async Task<Base.Response.PageResult<Response.GetWithdrawalResponse>> AdminGetWithdrawalRequest(Guid? userId, Base.Request.PagingDay pagination)
     {
         var withdrawals = _dbcontext.Withdrawals.Where(x => x.Status == "Pending");
         if (pagination.Id != null)
@@ -71,17 +69,13 @@ public class Service : IService
         {
             withdrawals = withdrawals.Where(x => x.Wallet.User.Email.Contains(pagination.Search));
         }
-        if (request.UserId != null)
+        if (userId != null)
         {
-            withdrawals = withdrawals.Where(x => x.Wallet.UserId ==  request.UserId);
+            withdrawals = withdrawals.Where(x => x.Wallet.UserId ==  userId);
         }
-        if (request.CreatedAt != null)
+        if (pagination.Date != null)
         {
-            var targetDate = request.CreatedAt.Value.Date;
-            var timeZoneOffset = TimeSpan.FromHours(7); 
-            var startDate = new DateTimeOffset(targetDate, timeZoneOffset);
-            var endDate = startDate.AddDays(1);
-            withdrawals = withdrawals.Where(x => x.CreatedAt >= startDate && x.CreatedAt < endDate);
+            withdrawals = withdrawals.Where(x => DateOnly.FromDateTime(x.CreatedAt.Date) == pagination.Date);
         }
         var total = await withdrawals.CountAsync();
         withdrawals = withdrawals.OrderBy(x => x.CreatedAt);
@@ -91,6 +85,12 @@ public class Service : IService
 
         var selectWithdrawal = withdrawals.Select(x => new Response.GetWithdrawalResponse()
         {
+            Id = x.Id,
+            UserId = x.Wallet.UserId,
+            Email = x.Wallet.User.Email,
+            Avatar = x.Wallet.User.AvatarUrl,
+            FirstName = x.Wallet.User.FirstName,
+            LastName = x.Wallet.User.LastName,
             Amount = x.Amount,
             BankName = x.BankName,
             BankAccountNumber = x.BankAccountNumber,
@@ -107,6 +107,127 @@ public class Service : IService
             PageIndex = pagination.PageIndex,
             PageSize = pagination.PageSize,
             TotalItems = total
+        };
+        return result;
+    }
+
+    public async Task<string> AdminApprovedWithdrawalRequest(Guid withdrawalRequestId)
+    {
+        var withdrawalRrquest = await _dbcontext.Withdrawals.FirstOrDefaultAsync(x => x.Id == withdrawalRequestId);
+        if (withdrawalRrquest == null)
+        {
+            throw new Exception("Withdrawal not found");
+        }
+        if (withdrawalRrquest.Status != "Pending")
+        {
+            throw new Exception("Withdrawal was rejected");
+        }
+        withdrawalRrquest.Status = "Approved";
+        withdrawalRrquest.UpdatedAt = DateTimeOffset.UtcNow;
+        _dbcontext.Update(withdrawalRrquest);
+        var result = await _dbcontext.SaveChangesAsync();
+        if (result > 0)
+        {
+            return "Success approved withdrawal";
+        }
+        return "Failure approved withdrawal";
+    }
+
+    public async Task<string> AdminRejectWithdrawalRequest(Guid withdrawalRequestId, string reason, string? note)
+    {
+        var withdrawalRequest = await _dbcontext.Withdrawals
+            .FirstOrDefaultAsync(x => 
+                x.Id == withdrawalRequestId);
+        if (withdrawalRequest == null)
+        {
+            throw new Exception("Withdrawal not found");
+        }
+        var wallet = await _dbcontext.Wallets.FirstOrDefaultAsync(x => x.Id == withdrawalRequest.WalletId);
+        if (wallet == null)
+        {
+            throw new Exception("Wallet not found");
+        }
+        if (withdrawalRequest.Status != "Pending")
+        {
+            throw new Exception("Withdrawal was rejected");
+        }
+        withdrawalRequest.Status = "Rejected";
+        withdrawalRequest.RejectionReason = reason;
+        withdrawalRequest.AdminNote = note;
+        withdrawalRequest.UpdatedAt = DateTimeOffset.UtcNow;
+        _dbcontext.Update(withdrawalRequest);
+        
+        var transactionI = new Transaction.Request.CreateTransactionRequest()
+        {
+            Type = Transaction.Request.TypeList.Withdrawal,
+            Amount = withdrawalRequest.Amount,
+            BalanceBefore = wallet.Balance,
+            BalanceAfter =  wallet.Balance + withdrawalRequest.Amount,
+            Status = "Success",
+            WalletId =  wallet.Id,
+        };
+        if (!await _walletService.AddBanlanceToWallet(withdrawalRequest.Wallet.UserId, withdrawalRequest.Amount, "Wallet"))
+        {
+            throw new Exception("Wallet reject balance failed");
+        }
+        if (!await _transactionService.CreateTransaction(transactionI))
+        {
+            throw new Exception("Error creating transaction");
+        }
+        return "Success rejected withdrawal";
+    }
+
+    public async Task<Base.Response.PageResult<Response.UsergetWithdrawalResponse>> GetWithdrawalRequest(Base.Request.PagingDay pagination)
+    {
+        var userId = _httpAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "UserId")!.Value;
+        var userIdGuild = Guid.Parse(userId);
+        var user = await _dbcontext.Users.FirstOrDefaultAsync(x => x.Id == userIdGuild);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+        var wallet = await _dbcontext.Wallets.FirstOrDefaultAsync(x => x.UserId == userIdGuild);
+        if (wallet == null)
+        {
+            throw new Exception("Wallet not found");
+        }
+        var withdrawalRequest = _dbcontext.Withdrawals.Where(x => x.WalletId == wallet.Id);
+        if (withdrawalRequest == null)
+        {
+            throw new Exception("Withdrawal not found");
+        }
+        if (pagination.Date != null)
+        {
+            withdrawalRequest = withdrawalRequest.Where(x => DateOnly.FromDateTime(x.CreatedAt.Date) == pagination.Date);
+        }
+        withdrawalRequest = withdrawalRequest.OrderByDescending(x => x.Status).ThenBy(x => x.CreatedAt);
+        var total = withdrawalRequest.Count();
+        withdrawalRequest = withdrawalRequest.OrderBy(x => x.CreatedAt);
+        withdrawalRequest = withdrawalRequest
+            .Skip((pagination.PageIndex - 1) * pagination.PageSize)
+            .Take(pagination.PageSize);
+        var selectWithdrawalRequest = withdrawalRequest.Select(x => new Response.UsergetWithdrawalResponse()
+        {
+            // Id = x.Id,
+            // UserId = x.Wallet.UserId,
+            Email = x.Wallet.User.Email,
+            Avatar = x.Wallet.User.AvatarUrl,
+            FirstName = x.Wallet.User.FirstName,
+            LastName = x.Wallet.User.LastName,
+            Amount = x.Amount,
+            // WalletId = x.WalletId,
+            RejectionReason = x.RejectionReason,
+            AdminNote = x.AdminNote,
+            CreatedAt = x.CreatedAt,
+            UpdatedAt = x.UpdatedAt,
+        });
+        var listWithdrawal = await selectWithdrawalRequest.ToListAsync();
+        var result = new Base.Response.PageResult<Response.UsergetWithdrawalResponse>()
+        {
+            Items = listWithdrawal,
+            PageIndex = pagination.PageIndex,
+            PageSize = pagination.PageSize,
+            TotalItems = total,
         };
         return result;
     }

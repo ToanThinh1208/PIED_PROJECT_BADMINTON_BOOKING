@@ -18,7 +18,7 @@ public class CourtController: ControllerBase
         _courtService = courtService;
     }
 
-    [HttpGet("GetByFilters")]
+    [HttpGet("CustomerSearchCourtByFilters")]
     public async Task<IActionResult> GetCourtsByFilter([FromQuery] Request.SearchByFilterRequest request)
     {
         var result = await _courtService.SearchByFilter(request);
@@ -26,33 +26,19 @@ public class CourtController: ControllerBase
             , HttpContext.TraceIdentifier));
     }
     
-    [HttpGet("GetCourtDetailsById{courtId}")]
-    public async Task<IActionResult> GetCourtsById([FromRoute] Guid courtId)
+    [HttpGet("CustomerGetCourtDetailsById{courtId}")]
+    public async Task<IActionResult> GetCourtsById(Guid courtId)
     {
         var result = await _courtService.GetCourtsDetailById(courtId);
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
             , HttpContext.TraceIdentifier));
     }
     
-    [HttpGet("GetSubCourt{courtId}")]
-    public async Task<IActionResult> GetSubCourt([FromRoute] Guid courtId)
+    [HttpGet("CustomerGetSubCourtByCourtId{courtId}")]
+    public async Task<IActionResult> GetSubCourt(Guid courtId)
     {
         var result = await _courtService.GetSubCourtById(courtId);
         return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
             , HttpContext.TraceIdentifier));
     }
-    // [HttpGet("GetAvailableSlots")]
-    // public async Task<IActionResult> GetAvailableSlots([FromQuery] Request.GetAvailableSlotsRequest request)
-    // {
-    //     var result = await _courtService.GetAvailableSlots(request);
-    //     return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
-    //         , HttpContext.TraceIdentifier));
-    // }
-    // [HttpPost("BookingSlots")]
-    // public async Task<IActionResult> BookingSlot([FromBody] Request.HoldBookingRequest request)
-    // {
-    //     var result = await _courtService.HoodBooking(request);
-    //     return Ok(ApiResponseFactory.SuccessResponse( result,"Success" 
-    //         , HttpContext.TraceIdentifier));
-    // }
 }

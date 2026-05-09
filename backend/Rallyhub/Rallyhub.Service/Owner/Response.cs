@@ -10,22 +10,29 @@ public class Response
   
     public class GetMyCourtsResponse  
     {  
-        public Guid Id { get; set; }
+        public Guid CourtId { get; set; }
         public string Name { get; set; } = null!;  
         public string Status { get; set; } = null!;  
+        public string Address { get; set; } = null!;
+        public TimeOnly StartTime { get; set; }
+        public TimeOnly EndTime { get; set; }
+        public string PictureUrl { get; set; } = null!;
+        public string MapUrl { get; set; } = null!;
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
     }
     
     public class CreateSubCourtResponse
     {
-        public Guid Id { get; set; }
+        public Guid SubCourtId { get; set; }
         public string Name { get; set; } = null!;
     }
     
     public class GetMySubCourtsResponse
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = null!;
         public Guid CourtId { get; set; }
+        public Guid SubCourtId { get; set; }
+        public string Name { get; set; } = null!;
     }
     
     public class CreateConfigSlotResponse
@@ -83,5 +90,6 @@ public class Response
         public TimeOnly EndTime { get; set; }
         public decimal Price { get; set; }
         public bool IsAvailable { get; set; }
+        public string? Reason { get; set; }
     }
 }

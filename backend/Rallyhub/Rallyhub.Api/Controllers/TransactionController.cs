@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Rallyhub.Api.Extention;
+using Rallyhub.Service.Models;
 using Rallyhub.Service.Transaction;
 
 namespace Rallyhub.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class TransactionController : ControllerBase
 {
     private readonly IService _transactionService;
@@ -13,5 +16,22 @@ public class TransactionController : ControllerBase
         _transactionService = transactionService;
     }
     
+    [HttpGet("GetTransaction")]
+    [Authorize(Policy = JwtExtensions.CustomerOrOwnerPolicy)]
+    public async Task<IActionResult> GetTransaction([FromQuery] Service.Base.Request.PagingDay paginDay)
+    {
+        await _transactionService.GetTransaction(paginDay);
+        return Ok(ApiResponseFactory.SuccessResponse( "Success","Success" 
+            , HttpContext.TraceIdentifier));
+    }
     
+    [HttpGet("AdminGetTransaction")]
+    [Authorize(Policy = JwtExtensions.AdminPolicy)]
+    public async Task<IActionResult> AdminGetTransaction([FromQuery] Guid? userId ,Service.Base.Request.PagingDay paginDay)
+    {
+
+        await _transactionService.AdminGetTransaction(userId, paginDay);
+        return Ok(ApiResponseFactory.SuccessResponse( "Success","Success" 
+            , HttpContext.TraceIdentifier));
+    }
 }

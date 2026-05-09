@@ -14,6 +14,7 @@ export interface OwnerRequest {
   createdAt: string;
   customerId: string;
   customerEmail?: string;
+  email?: string;
   // Backend có thể trả về thông tin customer dạng nested
   customer?: {
     firstName?: string;

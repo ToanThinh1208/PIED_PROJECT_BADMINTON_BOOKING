@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using Quartz;
 using Rallyhub.Api.Extention;
 using Rallyhub.Api.Middleware;
@@ -21,11 +22,16 @@ using TransactionService = Rallyhub.Service.Transaction;
 using WalletService = Rallyhub.Service.Wallet;
 using BookingService = Rallyhub.Service.Booking;
 using WithdrawalService = Rallyhub.Service.Withdrawal;
+using sepayService = Rallyhub.Service.SepayService;
 
 
 // using DiscordService = Rallyhub.Service.DiscordService;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Set default culture to InvariantCulture (dot as decimal separator)
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 // Add services to the container.
 
@@ -62,7 +68,7 @@ builder.Services.AddScoped<TransactionService.IService, TransactionService.Servi
 builder.Services.AddScoped<WalletService.IService, WalletService.Service>();
 builder.Services.AddScoped<BookingService.IService, BookingService.Service>();
 builder.Services.AddScoped<WithdrawalService.IService, WithdrawalService.Service>();
-
+builder.Services.AddScoped<sepayService.IService, sepayService.Service>();
 
 
 
@@ -81,16 +87,22 @@ builder.Services.AddStackExchangeRedisCache(options =>
 builder.Services.AddQuartz(options =>
 {
     var bookingJobKey = new JobKey(nameof(BookingTimeoutJob));
-    options
-        .AddJob<BookingTimeoutJob>(bookingJobKey)
-        .AddTrigger(trigger =>
-            trigger
-                .ForJob(bookingJobKey)
-                .WithSimpleSchedule(schedule => schedule
-                    .WithIntervalInSeconds(10) // 2.5 phút = 150 giây
-                    .RepeatForever()
-                )
-        );
+    var bookingDetailJobKey = new JobKey(nameof(BookingDetailTimeJob));
+    options.AddJob<BookingTimeoutJob>(bookingJobKey)
+        .AddTrigger(trigger => trigger
+            .ForJob(bookingJobKey)
+            .WithSimpleSchedule(schedule => schedule
+                .WithIntervalInSeconds(10)
+                .RepeatForever()
+            ));
+
+    options.AddJob<BookingDetailTimeJob>(bookingDetailJobKey)
+        .AddTrigger(trigger => trigger
+            .ForJob(bookingDetailJobKey)
+            .WithSimpleSchedule(schedule => schedule
+                .WithIntervalInSeconds(10)
+                .RepeatForever()
+            ));
 });
 builder.Services.AddQuartzHostedService(options =>
 {

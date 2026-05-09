@@ -17,12 +17,16 @@ import { AdminDashboard, OwnerDashboard } from "@/features/dashboard";
 import { CourtSearchPage } from "@/features/courts";
 import { BookingHistoryPage } from "@/features/bookings";
 import { OwnerRequestsPage } from "@/features/admin-owner-requests";
+import OwnerLayout from "@/shared/layouts/OwnerLayout";
+import OwnerCourtsPage from "@/features/owner-courts/pages/OwnerCourtsPage";
+import OwnerSubCourtsPage from "@/features/owner-courts/pages/OwnerSubCourtsPage";
+import OwnerSubCourtCalendarPage from "@/features/owner-courts/pages/OwnerSubCourtCalendarPage";
+import OwnerSubCourtSchedulePage from "@/features/owner-courts/pages/OwnerSubCourtSchedulePage";
+import AdminCourtsPage from "@/features/admin-courts/pages/AdminCourtsPage";
+import AdminUsersPage from "@/features/admin-users/pages/AdminUsersPage";
 
 /**
  * React Router v6 config – createBrowserRouter (Data API).
- *
- * Active routes: /, /login, /register, /unauthorized, /* (404)
- * Commented routes: /rituals, /rituals/:id, /profile, /admin/*
  */
 export const router = createBrowserRouter([
   // ─── Public layout (User) ───────────────────────────
@@ -32,8 +36,6 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "courts", element: <CourtSearchPage /> },
       { path: "matching", element: <ComingSoonPage /> },
-      // { path: "rituals", element: <RitualCatalog /> },
-      // { path: "rituals/:id", element: <RitualDetail /> },
       {
         path: "login",
         element: (
@@ -102,17 +104,26 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "owner-requests", element: <OwnerRequestsPage /> },
+      { path: "court-approvals", element: <AdminCourtsPage /> },
+      { path: "users", element: <AdminUsersPage /> },
     ],
   },
 
-  // ─── Owner layout (Protected, admin only) ───────────
+  // ─── Owner layout (Protected, owner only) ────────────
   {
     path: "owner",
     element: (
       <ProtectedRoute allowedRoles={["Owner"]}>
-        <AdminLayout />
+        <OwnerLayout />
       </ProtectedRoute>
     ),
-    children: [{ index: true, element: <OwnerDashboard /> }],
+    children: [
+      { index: true, element: <OwnerDashboard /> },
+      { path: "courts", element: <OwnerCourtsPage /> },
+      { path: "sub-courts", element: <OwnerSubCourtsPage /> },
+      { path: "sub-courts/:id/calendar", element: <OwnerSubCourtCalendarPage /> },
+      { path: "sub-courts/:id/schedule", element: <OwnerSubCourtSchedulePage /> },
+      { path: "schedules", element: <OwnerSubCourtsPage /> },
+    ],
   },
 ]);
