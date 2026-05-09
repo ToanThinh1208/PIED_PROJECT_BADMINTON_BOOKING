@@ -29,19 +29,19 @@ export const API_ENDPOINTS = {
    * Customer endpoints - Quản lý sân yêu thích.
    */
   CUSTOMER: {
-    GET_ALL_LIKE_LIST: "/api/Customer/GetAllLikeList",
-    ADD_COURT_LIKE: "/api/Customer/AddCourtLikeList",
-    DELETE_COURT_LIKE: "/api/Customer/DeleteCourtLikeList",
-    GET_ALL_BOOKING: "/api/Customer/GetAllBooking",
-    CHECK_CANCEL_BOOKING: "/api/Customer/CheckCancelBooking",
-    CANCEL_BOOKING: "/api/Customer/CancelBooking",
+    GET_ALL_LIKE_LIST: "/Customer/GetAllLikeList",
+    ADD_COURT_LIKE: "/Customer/AddCourtLikeList",
+    DELETE_COURT_LIKE: "/Customer/DeleteCourtLikeList",
+    GET_ALL_BOOKING: "/Customer/GetAllBooking",
+    CHECK_CANCEL_BOOKING: "/Customer/CheckCancelBooking",
+    CANCEL_BOOKING: "/Customer/CancelBooking",
   },
   /**
    * Court endpoints
    */
   COURT: {
-    GET_BY_FILTERS: "/Court/GetByFilters",
-    GET_BY_ID: "/Court/GetCourtDetailsById{courtId}",
+    GET_BY_FILTERS: "/Court/CustomerSearchCourtByFilters",
+    GET_BY_ID: "/Court/CustomerGetCourtDetailsById{courtId}",
   },
   MAP: {
     BOXING_BOX: "/Map/boxing_ox",
