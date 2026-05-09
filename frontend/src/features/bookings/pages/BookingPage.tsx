@@ -5,21 +5,17 @@ import {
   ChevronLeft, 
   Calendar as CalendarIcon, 
   MapPin, 
-  Info,
-  Loader2,
-  AlertCircle
+  Loader2
 } from "lucide-react";
 
-
 import { useSubCourts } from "../hooks/useSubCourts";
-import { useAvailableSlots, useCreateBooking, useCreateBookingByWallet } from "../hooks/useBookingOperations";
-import { SubCourtTabList } from "../components/SubCourtTabList";
-import { SlotPicker } from "../components/SlotPicker";
+import { useCreateBooking, useCreateBookingByWallet } from "../hooks/useBookingOperations";
 import { BookingPaymentSummary } from "../components/BookingPaymentSummary";
 import { PaymentQrDialog } from "../components/PaymentQrDialog";
 import { useCourtDetail } from "@/features/courts/hooks/useCourts";
 import type { AvailableSlot, CreateBookingResponse, SubCourt } from "../types";
 import { toast } from "sonner";
+import { BookingTimeline } from "../components/BookingTimeline";
 
 export function BookingPage() {
   const { id: courtId } = useParams<{ id: string }>();
@@ -40,28 +36,44 @@ export function BookingPage() {
   const subCourtsList = useMemo(() => {
     if (!subCourts) return [];
     if (Array.isArray(subCourts)) return subCourts;
-    // Handle paginated response if applicable
-    if (typeof subCourts === 'object' && 'items' in subCourts) {
-      return (subCourts as { items: SubCourt[] }).items;
+    
+    // Handle wrapped response from BE
+    const data = subCourts as any;
+    const items = data.subCourts || data.SubCourts || data.items || [];
+    
+    if (Array.isArray(items)) {
+      return items.map((item: any) => ({
+        subCourtId: item.subCourtId || item.id || item.Id,
+        name: item.name || item.Name,
+        courtId: item.courtId || courtId
+      })) as SubCourt[];
     }
+    
     return [];
-  }, [subCourts]);
+  }, [subCourts, courtId]);
 
   const effectiveSubCourtId = selectedSubCourtId || (subCourtsList.length > 0 ? subCourtsList[0].subCourtId : null);
 
   const formattedDate = format(selectedDate, "yyyy-MM-dd");
-  const { data: slots, isLoading: isSlotsLoading, isError: isSlotsError } = useAvailableSlots(
-    effectiveSubCourtId || "",
-    formattedDate
-  );
 
   // Mutations
   const createBooking = useCreateBooking();
   const createBookingByWallet = useCreateBookingByWallet();
 
   // Handlers
-  const handleToggleSlot = (slot: AvailableSlot) => {
+  const handleToggleSlot = (slot: AvailableSlot & { subCourtId: string }) => {
     setSelectedSlots(prev => {
+      // If selecting a slot on a different sub-court, clear previous selection
+      const currentSubCourtId = prev.length > 0 ? (prev[0] as any).subCourtId : null;
+      
+      if (currentSubCourtId && currentSubCourtId !== slot.subCourtId) {
+        toast.info(`Đã chuyển sang đặt sân ${subCourtsList.find(s => s.subCourtId === slot.subCourtId)?.name}`);
+        setSelectedSubCourtId(slot.subCourtId);
+        return [slot];
+      }
+
+      setSelectedSubCourtId(slot.subCourtId);
+      
       const exists = prev.find(s => s.startTime === slot.startTime && s.endTime === slot.endTime);
       if (exists) {
         return prev.filter(s => s !== exists);
@@ -108,7 +120,10 @@ export function BookingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F9FBFA]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 size={48} className="text-emerald-500 animate-spin" />
+          <div className="relative">
+            <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full animate-pulse" />
+            <Loader2 size={48} className="text-emerald-500 animate-spin relative" />
+          </div>
           <p className="text-gray-400 font-black uppercase tracking-widest animate-pulse">ĐANG TẢI DỮ LIỆU...</p>
         </div>
       </div>
@@ -128,7 +143,7 @@ export function BookingPage() {
         }}
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Breadcrumbs / Back */}
         <button 
           onClick={() => navigate(-1)}
@@ -141,8 +156,11 @@ export function BookingPage() {
         </button>
 
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
           <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+              Tiện ích đặt sân
+            </div>
             <h1 className="text-4xl md:text-5xl font-black text-[#0B2421] leading-tight">
               Đặt sân <span className="text-emerald-500">{court?.name}</span>
             </h1>
@@ -151,89 +169,44 @@ export function BookingPage() {
                 <MapPin size={14} className="text-emerald-500" />
                 <span className="text-xs font-bold text-gray-600">{court?.address}</span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <Info size={14} className="text-blue-500" />
-                <span className="text-xs font-bold text-gray-600">Mỗi slot mặc định 30 phút</span>
-              </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Chọn ngày đặt</p>
-            <div className="relative w-full md:w-[280px]">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none">
-                <CalendarIcon size={18} />
+          <div className="flex flex-col gap-3 min-w-[300px]">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Chọn ngày thi đấu</p>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-emerald-500/5 group-hover:bg-emerald-500/10 blur-xl rounded-full transition-all" />
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none">
+                  <CalendarIcon size={18} />
+                </div>
+                <input
+                  type="date"
+                  value={formattedDate}
+                  min={format(new Date(), "yyyy-MM-dd")}
+                  onChange={(e) => {
+                    const [year, month, day] = e.target.value.split('-').map(Number);
+                    setSelectedDate(new Date(year, month - 1, day));
+                    setSelectedSlots([]); // Clear slots on date change
+                  }}
+                  className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-gray-100 bg-white font-black text-xs uppercase tracking-widest focus:border-emerald-500 focus:outline-none transition-all appearance-none cursor-pointer"
+                />
               </div>
-              <input
-                type="date"
-                value={formattedDate}
-                min={format(new Date(), "yyyy-MM-dd")}
-                onChange={(e) => {
-                  const [year, month, day] = e.target.value.split('-').map(Number);
-                  setSelectedDate(new Date(year, month - 1, day));
-                }}
-                className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-gray-100 bg-white font-black text-xs uppercase tracking-widest focus:border-emerald-500 focus:outline-none transition-all appearance-none"
-              />
             </div>
           </div>
         </div>
 
-        {/* Sub-courts Selection */}
-        <div className="mb-12">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 ml-1">Danh sách sân con</p>
-          <SubCourtTabList 
+        {/* New Unified Timeline View */}
+        <div className="space-y-4">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 ml-1">Lịch thi đấu chi tiết</p>
+          <BookingTimeline 
             subCourts={subCourtsList}
-            selectedId={effectiveSubCourtId}
-            onSelect={(id) => {
-              setSelectedSubCourtId(id);
-              setSelectedSlots([]);
-            }}
+            courtName={court?.name || ""}
+            selectedDate={selectedDate}
+            selectedSlots={selectedSlots}
+            onToggleSlot={handleToggleSlot}
+            selectedSubCourtId={effectiveSubCourtId}
           />
-        </div>
-
-        {/* Slots Grid */}
-        <div className="relative min-h-[400px]">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-black text-[#0B2421]">Chọn khung giờ</h3>
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-white border border-gray-200" />
-                <span className="text-[10px] font-black text-gray-400 uppercase">Trống</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className="text-[10px] font-black text-gray-400 uppercase">Đang chọn</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-100 border border-gray-200" />
-                <span className="text-[10px] font-black text-gray-400 uppercase">Đã đặt</span>
-              </div>
-            </div>
-          </div>
-
-          {isSlotsLoading ? (
-            <div className="flex flex-col items-center justify-center h-64 bg-white rounded-[2.5rem] border border-dashed border-gray-200">
-              <Loader2 size={32} className="text-emerald-500 animate-spin mb-4" />
-              <p className="text-gray-400 font-bold italic">Đang cập nhật lịch sân...</p>
-            </div>
-          ) : isSlotsError ? (
-            <div className="flex flex-col items-center justify-center h-64 bg-red-50 rounded-[2.5rem] border border-red-100 p-8 text-center">
-              <AlertCircle size={40} className="text-red-400 mb-4" />
-              <h4 className="text-red-600 font-black mb-2 uppercase text-xs tracking-widest">Đã có lỗi xảy ra</h4>
-              <p className="text-red-500/70 text-sm font-medium">Không thể tải danh sách slot. Vui lòng thử lại sau.</p>
-            </div>
-          ) : slots && slots.length > 0 ? (
-            <SlotPicker 
-              slots={slots}
-              selectedSlots={selectedSlots}
-              onToggleSlot={handleToggleSlot}
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200">
-              <CalendarIcon size={32} className="text-gray-300 mb-4" />
-              <p className="text-gray-400 font-bold italic">Không có slot nào trong ngày này</p>
-            </div>
-          )}
         </div>
       </div>
 
