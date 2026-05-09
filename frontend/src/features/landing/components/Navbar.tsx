@@ -10,7 +10,7 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { accessToken, setLoginPromptOpen } = useAuthStore();
+  const { accessToken } = useAuthStore();
 
   const NAV_ITEMS = [
     { label: "Trang chủ", path: "/" },
