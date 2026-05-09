@@ -8,6 +8,8 @@ import {
   Phone,
   Hash
 } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import type { GetBookingResponse } from "../types";
@@ -61,9 +63,10 @@ export function BookingCard({ booking, onCancelClick }: BookingCardProps) {
   const finalPrice = booking.finalPrice || 0;
   const courtName = booking.courtName || "Đơn hàng";
   const address = booking.address || "Thông tin địa chỉ đang cập nhật";
-  const date = booking.date || "N/A";
-  const phoneNumber = booking.phoneNumber || "N/A";
   const slotsResponses = booking.slotsResponses || [];
+  const rawDate = booking.date || (slotsResponses.length > 0 ? slotsResponses[0].date : null);
+  const date = rawDate ? format(parseISO(rawDate), "dd/MM/yyyy") : "N/A";
+  const phoneNumber = booking.phoneNumber || "N/A";
   const urlMap = booking.urlMap;
 
   return (
