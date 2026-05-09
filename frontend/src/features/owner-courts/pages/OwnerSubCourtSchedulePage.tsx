@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { useAvailableSlots, useCreateOverrideSlot, useCreateExceptionSlot, useExceptionSlots } from "../hooks/useOwnerSlots";
+import { useAvailableSlots, useCreateOverrideSlot, useCreateExceptionSlot } from "../hooks/useOwnerSlots";
 import { 
   ArrowLeft, 
   Calendar as CalendarIcon, 
@@ -69,34 +69,9 @@ export default function OwnerSubCourtSchedulePage() {
     date: selectedDate
   });
 
-  const { data: exceptionSlots } = useExceptionSlots(subCourtId || "");
 
-  // Merge reasons from exceptions into available slots
-  const availableSlots = useMemo(() => {
-    if (!availableSlotsRaw) return null;
-    if (!exceptionSlots) return availableSlotsRaw;
-
-    // Filter exceptions for the selected date
-    const dailyExceptions = exceptionSlots.filter(ex => {
-        // Handle ISO date format comparison (yyyy-MM-dd)
-        const exDate = ex.date.split('T')[0];
-        return exDate === selectedDate;
-    });
-
-    return availableSlotsRaw.map(slot => {
-        // If slot is not available, check if it's because of an exception
-        if (!slot.isAvailable) {
-            const matchingEx = dailyExceptions.find(ex => 
-                ex.startTime.substring(0, 5) === slot.startTime.substring(0, 5) &&
-                ex.endTime.substring(0, 5) === slot.endTime.substring(0, 5)
-            );
-            if (matchingEx) {
-                return { ...slot, reason: matchingEx.reason };
-            }
-        }
-        return slot;
-    });
-  }, [availableSlotsRaw, exceptionSlots, selectedDate]);
+  // Backend đã trả về reason trực tiếp trong GetAvailableSlots
+  const availableSlots = availableSlotsRaw;
 
   const createOverrideMutation = useCreateOverrideSlot();
   const createExceptionMutation = useCreateExceptionSlot();

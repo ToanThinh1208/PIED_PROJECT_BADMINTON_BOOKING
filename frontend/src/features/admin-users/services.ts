@@ -9,7 +9,7 @@ import type {
 
 export const adminUserService = {
   filterUsers: async (params: FilterUserRequest) => {
-    return apiClient.get<PaginatedResponse<UserListItem>>("/api/Admin/FilterUser", {
+    return apiClient.get<PaginatedResponse<UserListItem>>("/Admin/FilterUser", {
       params: {
         Search: params.search,
         Id: params.id,
@@ -22,12 +22,12 @@ export const adminUserService = {
   },
 
   getUserDetail: async (id: string) => {
-    return apiClient.get<UserDetail>("/api/Admin/getUserDetailById", {
+    return apiClient.get<UserDetail>("/Admin/getUserDetailById", {
       params: { Id: id },
     }) as unknown as Promise<UserDetail>;
   },
 
   banUnbanUser: async (data: BanUnbanUserRequest) => {
-    return apiClient.patch("/api/Admin/BanAndUnbanUser", data);
+    return apiClient.patch("/Admin/BanAndUnbanUser", data);
   },
 };

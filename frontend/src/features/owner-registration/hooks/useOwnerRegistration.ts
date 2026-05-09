@@ -32,13 +32,13 @@ export function useOwnerRegistration() {
       }
 
       const response = await apiClient.post(
-        "/api/Customer/OwnerRequest",
+        "/Customer/OwnerRequest",
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": undefined,
           },
-        },
+        }
       );
 
       // apiClient interceptor đã unwrap response.data.data
