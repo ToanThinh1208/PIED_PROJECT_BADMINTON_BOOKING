@@ -77,7 +77,7 @@ export function AdminLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F1F5F9]">
-      <UserProfileCard />
+
 
       {/* Sidebar Overlay for Mobile */}
       {sidebarOpen && (
@@ -205,6 +205,7 @@ export function AdminLayout() {
               <Bell size={20} />
               <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-red-500 border-2 border-white" />
             </Button>
+            <UserProfileCard />
           </div>
         </header>
 

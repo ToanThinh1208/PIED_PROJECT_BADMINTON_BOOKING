@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { Navbar } from "@/features/landing";
 import { LoginPromptDialog } from "@/shared/components/common/LoginPromptDialog";
-import { UserProfileCard } from "@/features/auth/components/UserProfileCard";
+
 import { useMe } from "@/features/profile/hooks/useMe";
 import { OwnerRegistrationDialog } from "@/features/owner-registration";
 
@@ -17,8 +17,7 @@ export function UserLayout() {
       <LoginPromptDialog />
       <OwnerRegistrationDialog />
 
-      {/* ─── Profile Sticky Card (Visible for all logged-in roles) ─── */}
-      {!hideHeaderFooter && <UserProfileCard />}
+
 
       {/* ─── Header ─────────────────────────────────────── */}
       {!hideHeaderFooter && <Navbar />}
