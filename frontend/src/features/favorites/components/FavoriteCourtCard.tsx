@@ -31,7 +31,7 @@ export function FavoriteCourtCard({ court, onViewDetail }: FavoriteCourtCardProp
       {/* Image Section */}
       <div className="relative w-full md:w-64 h-44 rounded-[24px] overflow-hidden flex-shrink-0">
         <img 
-          src={court.imageUrl || "https://images.unsplash.com/photo-1626225967045-9c76db7b62dc?w=800&auto=format&fit=crop"} 
+          src={court.pictureUrl || "https://images.unsplash.com/photo-1626225967045-9c76db7b62dc?w=800&auto=format&fit=crop"} 
           alt={court.courtName} 
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
@@ -60,8 +60,10 @@ export function FavoriteCourtCard({ court, onViewDetail }: FavoriteCourtCardProp
               <span className="text-xs font-bold text-orange-600">{court.rating || 0}</span>
             </div>
           </div>
-
-          {/* Removed price and available slots section as per request */}
+{/* 
+            <div className="text-emerald-600 font-bold text-sm mt-3">
+              {court.price.toLocaleString("vi-VN")}đ / giờ
+            </div> */}
         </div>
 
         {/* Action Buttons */}
