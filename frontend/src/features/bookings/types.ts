@@ -24,6 +24,7 @@ export interface SlotsResponse {
   startTime: string;
   endTime: string;
   price: number;
+  date: string;
 }
 
 export interface GetBookingResponse {

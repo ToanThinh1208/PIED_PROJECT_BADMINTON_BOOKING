@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useCancelBooking } from "../hooks/useBookingOperations";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,19 @@ export function PaymentQrDialog({
   const [isSuccess, setIsSuccess] = useState(false);
   const cancelBooking = useCancelBooking();
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleCancel = useCallback(() => {
+    if (bookingResponse?.bookingId && !isSuccess) {
+      cancelBooking.mutate(bookingResponse.bookingId);
+    }
+    onClose();
+  }, [bookingResponse?.bookingId, isSuccess, cancelBooking, onClose]);
+
   // Reset success state when dialog opens
   useEffect(() => {
     if (isOpen) {
@@ -37,28 +51,34 @@ export function PaymentQrDialog({
   useEffect(() => {
     if (isOpen && bookingResponse?.expiredAt) {
       const expiry = new Date(bookingResponse.expiredAt).getTime();
-      const interval = setInterval(() => {
+      
+      const checkExpiry = () => {
         const now = new Date().getTime();
         const diff = Math.max(0, Math.floor((expiry - now) / 1000));
         setTimeLeft(diff);
-        if (diff === 0) clearInterval(interval);
+        
+        if (diff <= 0) {
+          if (!isSuccess) {
+            toast.error("Mã thanh toán đã hết hạn!");
+            handleCancel();
+          }
+          return true;
+        }
+        return false;
+      };
+
+      // Check immediately
+      if (checkExpiry()) return;
+
+      const interval = setInterval(() => {
+        if (checkExpiry()) {
+          clearInterval(interval);
+        }
       }, 1000);
+      
       return () => clearInterval(interval);
     }
-  }, [isOpen, bookingResponse]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleCancel = () => {
-    if (bookingResponse?.bookingId && !isSuccess) {
-      cancelBooking.mutate(bookingResponse.bookingId);
-    }
-    onClose();
-  };
+  }, [isOpen, bookingResponse, isSuccess, handleCancel]);
 
   const handleSuccess = () => {
     setIsSuccess(true);

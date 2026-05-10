@@ -1,4 +1,3 @@
-import { useQueries } from "@tanstack/react-query";
 import { 
   Clock, 
   Info
@@ -7,7 +6,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { bookingsService } from "../services";
+import { useAvailableSlots } from "../hooks";
 import type { AvailableSlot, SubCourt } from "../types";
 
 // Generate time slots from 05:00 to 23:00 with 30min intervals
@@ -30,27 +29,7 @@ export function BookingTimeline({
   selectedSlots, 
   onToggleSlot,
 }: BookingTimelineProps) {
-  const dateStr = format(selectedDate, "yyyy-MM-dd");
-
-  // Fetch all slots for all sub-courts in parallel
-  const subCourtQueries = useQueries({
-    queries: subCourts.map((sub) => ({
-      queryKey: ["available-slots", sub.subCourtId, dateStr],
-      queryFn: async () => {
-        const rawData = await bookingsService.getAvailableSlots(sub.subCourtId, dateStr);
-        // Normalize data here like in BookingPage
-        if (!rawData || !Array.isArray(rawData)) return [];
-        return rawData.map((s: any) => ({
-          startTime: s.startTime || s.StartTime,
-          endTime: s.endTime || s.EndTime,
-          price: s.price || s.Price,
-          isAvailable: s.isAvailable !== undefined ? s.isAvailable : s.IsAvailable,
-          subCourtId: sub.subCourtId // Attach subCourtId for selection logic
-        }));
-      },
-      enabled: !!sub.subCourtId && !!dateStr,
-    })),
-  });
+  const subCourtQueries = useAvailableSlots(subCourts, selectedDate);
 
 
 
@@ -194,7 +173,7 @@ export function BookingTimeline({
                                     "text-[8px] font-bold leading-none opacity-80",
                                     selected ? "text-emerald-100" : "text-emerald-600/60"
                                   )}>
-                                    {slot.price.toLocaleString()}đ
+                                    {(slot.price ?? 0).toLocaleString()}đ
                                   </span>
                                 )}
 
@@ -216,7 +195,7 @@ export function BookingTimeline({
                                   </div>
                                   <div className="space-y-1">
                                     <p className="font-bold text-gray-400 uppercase tracking-widest text-[8px]">Giá tiền</p>
-                                    <p className="text-sm font-black text-emerald-400">{slot.price.toLocaleString()} VNĐ</p>
+                                    <p className="text-sm font-black text-emerald-400">{(slot.price ?? 0).toLocaleString()} VNĐ</p>
                                   </div>
                                   {!slot.isAvailable && (
                                     <p className="mt-2 pt-2 border-t border-white/10 text-rose-400 font-bold italic text-[9px]">Hiện không khả dụng</p>
