@@ -1,4 +1,5 @@
 import { MapPin, Star, Trash2, Calendar, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import type { CourtLike } from "../types";
@@ -11,6 +12,7 @@ interface FavoriteCourtCardProps {
 }
 
 export function FavoriteCourtCard({ court, onViewDetail }: FavoriteCourtCardProps) {
+  const navigate = useNavigate();
   const { mutate: removeFavorite, isPending } = useRemoveFavorite();
 
   const getTagColor = (tag?: string) => {
@@ -83,6 +85,7 @@ export function FavoriteCourtCard({ court, onViewDetail }: FavoriteCourtCardProp
           <Button 
             variant="ghost" 
             className="flex-1 gap-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 font-bold text-xs h-10 rounded-xl"
+            onClick={() => navigate(`/courts/${court.courtId}/booking`)}
           >
             <Calendar size={16} />
             Đặt sân
