@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useCancelBooking } from "../hooks/useBookingOperations";
+import { bookingsService } from "../services";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -80,6 +81,37 @@ export function PaymentQrDialog({
     }
   }, [isOpen, bookingResponse, isSuccess, handleCancel]);
 
+  // ─── Polling Logic for Payment Status ───────────────────
+  useEffect(() => {
+    let pollingInterval: ReturnType<typeof setInterval>;
+
+    if (isOpen && bookingResponse?.bookingId && !isSuccess) {
+      const checkStatus = async () => {
+        try {
+          const response = await bookingsService.getAll({ pageIndex: 1, pageSize: 10 });
+          const currentBooking = response.items.find(item => item.bookingId === bookingResponse.bookingId);
+          
+          if (currentBooking?.status === "Banked") {
+            toast.success("Thanh toán thành công!");
+            handleSuccess();
+          }
+        } catch (error) {
+          console.error("Error polling booking status:", error);
+        }
+      };
+
+      // Poll every 5 seconds
+      pollingInterval = setInterval(checkStatus, 5000);
+      
+      // Initial check
+      checkStatus();
+    }
+
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
+  }, [isOpen, bookingResponse?.bookingId, isSuccess]);
+
   const handleSuccess = () => {
     setIsSuccess(true);
     onSuccess();
@@ -156,12 +188,17 @@ export function PaymentQrDialog({
             </div>
 
             <div className="pt-1 flex flex-col gap-2">
-              <Button 
+              <div className="flex items-center justify-center gap-2 py-2 px-4 bg-emerald-50 text-emerald-600 rounded-xl mb-2">
+                <Loader2 size={14} className="animate-spin" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">Đang tự động kiểm tra thanh toán...</span>
+              </div>
+
+              {/* <Button 
                 onClick={handleSuccess}
                 className="w-full h-12 bg-[#0B2421] hover:bg-[#1a3a36] text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
               >
                 Tôi đã chuyển khoản
-              </Button>
+              </Button> */}
               <Button 
                 variant="ghost" 
                 onClick={handleCancel}
