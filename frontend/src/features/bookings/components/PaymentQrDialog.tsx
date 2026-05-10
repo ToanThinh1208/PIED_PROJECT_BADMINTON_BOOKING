@@ -123,17 +123,34 @@ export function PaymentQrDialog({
               </span>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-2 border-t border-b border-gray-100 py-4">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Tổng thanh toán</span>
-                <span className="text-[#0B2421] font-black">
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bookingResponse.totalPrice)}
+                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Mã đơn hàng</span>
+                <span className="text-[#0B2421] font-black truncate max-w-[150px]" title={bookingResponse.bookingId}>
+                  #{bookingResponse.bookingId.split('-')[0].toUpperCase()}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
+                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Thời gian</span>
+                <div className="flex flex-col items-end">
+                  {bookingResponse.slots.map((slot, index) => (
+                    <span key={index} className="text-[#0B2421] font-black">
+                      {slot.startTime.substring(0, 5)} - {slot.endTime.substring(0, 5)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-between text-sm">
                 <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Trạng thái</span>
-                <span className="text-emerald-600 font-black flex items-center gap-2">
-                  <Loader2 size={12} className="animate-spin" /> Đang kiểm tra...
+                <span className="text-amber-500 font-black flex items-center gap-2">
+                  <Loader2 size={12} className="animate-spin" /> 
+                  {bookingResponse.status === "Pending" ? "Chờ thanh toán" : bookingResponse.status}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Tổng thanh toán</span>
+                <span className="text-[#0B2421] font-black text-base">
+                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bookingResponse.totalPrice)}
                 </span>
               </div>
             </div>
