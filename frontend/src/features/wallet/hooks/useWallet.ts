@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/shared/constants";
+import { useAuthStore } from "@/features/auth";
 import { walletService } from "../services";
 import type { WalletInfo } from "../types";
 
 export function useWallet() {
+  const { role, accessToken } = useAuthStore();
+
   return useQuery({
     queryKey: QUERY_KEYS.WALLET_INFO,
     queryFn: async () => {
@@ -21,6 +24,7 @@ export function useWallet() {
         balance: response.balance ?? (response as any).Balance ?? 0,
       } as WalletInfo;
     },
+    enabled: !!accessToken && role !== "Admin",
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
