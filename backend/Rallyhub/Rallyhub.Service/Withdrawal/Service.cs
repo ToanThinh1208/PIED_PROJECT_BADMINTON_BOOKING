@@ -55,7 +55,13 @@ public class Service : IService
         {
             throw new Exception("Error creating transaction");
         }
-        return "Success create withdrawal";
+
+        var result = await _dbcontext.SaveChangesAsync();
+        if (result > 0)
+        {
+            return "Success create withdrawal";
+        }
+        return "failed";
     }
 
     public async Task<Base.Response.PageResult<Response.GetWithdrawalResponse>> AdminGetWithdrawalRequest(Guid? userId, Base.Request.PagingDay pagination)
@@ -166,7 +172,7 @@ public class Service : IService
             Status = "Success",
             WalletId =  wallet.Id,
         };
-        if (!await _walletService.AddBanlanceToWallet(withdrawalRequest.Wallet.UserId, withdrawalRequest.Amount, "Wallet"))
+        if (!await _walletService.AddBanlanceToWallet(withdrawalRequest.Wallet.UserId, withdrawalRequest.Amount, "Payment"))
         {
             throw new Exception("Wallet reject balance failed");
         }
@@ -174,7 +180,12 @@ public class Service : IService
         {
             throw new Exception("Error creating transaction");
         }
-        return "Success rejected withdrawal";
+        var result = await _dbcontext.SaveChangesAsync();
+        if (result > 0)
+        {
+            return "Success rejected withdrawal";
+        }
+        return "Failure rejected withdrawal";
     }
 
     public async Task<Base.Response.PageResult<Response.UsergetWithdrawalResponse>> GetWithdrawalRequest(Base.Request.PagingDay pagination)

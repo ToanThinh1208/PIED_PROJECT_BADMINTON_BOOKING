@@ -108,13 +108,8 @@ public class Service : IService
                 break;   
             }
         }
-        _dbContext.Update(newTransaction);
-        var  result = await _dbContext.SaveChangesAsync();
-        if (result > 0)
-        {
-            return true;
-        }
-        return false;
+        // var result = await _dbContext.SaveChangesAsync();
+        return true;
     }
 
     public async Task<Base.Response.PageResult<Response.GetTransactionResponse>> GetTransaction(Base.Request.PagingDay paginDay)

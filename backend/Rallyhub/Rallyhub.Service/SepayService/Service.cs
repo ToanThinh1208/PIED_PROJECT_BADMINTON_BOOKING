@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Rallyhub.Repository;
 
@@ -21,6 +21,11 @@ public class Service : IService
     public async Task<bool> BookingSepayWebhookHandler(Request.SepayWebhookRequest request)
     {
         var description = request.Code;
+        if (string.IsNullOrEmpty(description))
+        {
+            throw new Exception("Description is empty");
+        }
+
         if (description.StartsWith("RA"))
         {
             var raw = description.Replace("RA", "");
@@ -43,6 +48,7 @@ public class Service : IService
             {
                 targetBooking = await _dbContext.Bookings
                     .Include(x => x.BookingDetails)
+                    .Include(x => x.Customer)
                     .FirstOrDefaultAsync(x => x.Id == exactGuid);
             }
 
@@ -50,6 +56,7 @@ public class Service : IService
             {
                 targetBooking = await _dbContext.Bookings
                     .Include(x => x.BookingDetails)
+                    .Include(x => x.Customer)
                     .Where(x => EF.Functions.TrigramsSimilarity(x.Id.ToString(), formatted) > 0.68)
                     .OrderBy(x => EF.Functions.TrigramsSimilarityDistance(x.Id.ToString(), formatted))
                     .FirstOrDefaultAsync();
@@ -84,10 +91,6 @@ public class Service : IService
             {
                 throw new Exception("Wallet not found");
             }
-
-            _dbContext.Update(targetBooking);
-            await _dbContext.SaveChangesAsync();
-
             var transactionI = new Transaction.Request.CreateTransactionRequest()
             {
                 Type = Transaction.Request.TypeList.Payment,
@@ -95,25 +98,35 @@ public class Service : IService
                 BalanceBefore = wallet.Balance,
                 BalanceAfter = wallet.Balance,
                 Status = "Success",
-                SePayId = request.Id.ToString(),
-                BankRefCode = request.ReferenceCode,
+                // SePayId = request.Id.ToString(),
+                // BankRefCode = request.ReferenceCode,
                 BankAccountNumber = request.AccountNumber,
-                TransferContent = request.Content,
-                ActionCode = request.Code,
-                Signature =  request.Description,
-                BookingId =  targetBooking.Id,
+                // TransferContent = request.Content,
+                // ActionCode = request.Code,
+                // Signature = request.Description,
+                // BookingId = targetBooking.Id,
                 WalletId = wallet.Id,
             };
+
             if (!await _transactionService.CreateTransaction(transactionI))
             {
                 throw new Exception("Error creating transaction");
             }
+            foreach (var detail in targetBooking.BookingDetails)
+            {
+                detail.Status = "Banked";
+                detail.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+
+            _dbContext.Update(targetBooking);
+            await _dbContext.SaveChangesAsync();
+
+            
 
             return true;
         }
-        else
+        else if (description.StartsWith("WA"))
         {
-            // (description.StartsWith("WA"))
             var raw = description.Replace("WA", "");
 
             if (string.IsNullOrEmpty(raw) || raw.Length < 28)
@@ -151,6 +164,7 @@ public class Service : IService
             var transaction =
                 await _dbContext.Transactions.FirstOrDefaultAsync(x =>
                     x.WalletId == targetWallet.Id && x.Status == "Pending");
+            
             if (transaction == null)
             {
                 throw new Exception("Transaction not found");
@@ -161,18 +175,18 @@ public class Service : IService
                 throw new Exception("Invalid transfer amount");
             }
 
-            if (!await _walletService.AddBanlanceToWallet(targetWallet.UserId, request.TransferAmount, "Wallet"))
+            if (!await _walletService.AddBanlanceToWallet(targetWallet.UserId, request.TransferAmount, "Payment"))
             {
                 throw new Exception("Wallet reject balance failed");
             }
 
             transaction.Status = "Success";
-            transaction.SePayId = request.Id.ToString();
-            transaction.BankRefCode = request.ReferenceCode;
+            // transaction.SePayId = request.Id.ToString();
+            // transaction.BankRefCode = request.ReferenceCode;
             transaction.BankAccountNumber = request.AccountNumber;
-            transaction.TransferContent = request.Content;
-            transaction.ActionCode = request.Code;;
-            transaction.Signature = request.Description;
+            // transaction.TransferContent = request.Content;
+            // transaction.ActionCode = request.Code;
+            // transaction.Signature = request.Description;
             transaction.UpdatedAt = DateTimeOffset.UtcNow;
             _dbContext.Update(transaction);
             var result = await _dbContext.SaveChangesAsync();
@@ -182,6 +196,10 @@ public class Service : IService
             }
 
             return false;
+        }
+        else
+        {
+            throw new Exception("Unknown prefix");
         }
     }
 }

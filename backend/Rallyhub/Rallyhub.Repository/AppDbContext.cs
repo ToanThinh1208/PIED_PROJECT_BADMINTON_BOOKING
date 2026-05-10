@@ -83,11 +83,11 @@
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Email)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(250);
                 builder.HasIndex(x => x.Email).IsUnique();
                 builder.Property(x => x.PasswordHash)
                     .IsRequired()
-                    .HasMaxLength(100);
+                    .HasMaxLength(250);
                 builder.Property(x => x.Role)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -552,7 +552,7 @@
                     .HasMaxLength(500);
                 builder.Property(x => x.Type)
                     .IsRequired()
-                    .HasMaxLength(10);
+                    .HasMaxLength(50);
                 builder.Property(x => x.IsRead)
                     .IsRequired()
                     .HasDefaultValue(false);
@@ -716,7 +716,7 @@
                 builder.Property(x => x.Status)
                     .IsRequired()
                     .HasDefaultValue("Pending")
-                    .HasMaxLength(15);
+                    .HasMaxLength(50);
                 builder.Property(x => x.RejectionReason)
                     .HasMaxLength(200);
                 builder.HasOne(x => x.Customer)
@@ -791,13 +791,10 @@
             {
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Reason)
-                    .IsRequired()
                     .HasMaxLength(500);
                 builder.Property(x => x.Status)
-                    .IsRequired()
                     .HasDefaultValue("Pending");
                 builder.Property(x => x.Title)
-                    .IsRequired()
                     .HasMaxLength(50);
                 builder.HasOne(x => x.User)
                     .WithMany(x => x.SystemReports)
@@ -817,33 +814,29 @@
             {
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Type)
-                    .IsRequired()
-                    .HasMaxLength(15);
+                    .HasMaxLength(50);
                 builder.Property(x => x.Amount)
-                    .IsRequired()
                     .HasColumnType("decimal(18,2)");
                 builder.Property(x => x.BalanceBefore)
-                    .IsRequired()
                     .HasColumnType("decimal(18,2)");
                 builder.Property(x => x.BalanceAfter)
-                    .IsRequired()
                     .HasColumnType("decimal(18,2)");
                 builder.Property(x => x.SePayId)
-                    .HasMaxLength(50);
+                    .HasMaxLength(250);
                 builder.HasIndex(x => x.SePayId).IsUnique();
                 builder.Property(x => x.BankRefCode)
-                    .HasMaxLength(50);
+                    .HasMaxLength(250);
                 builder.HasIndex(x => x.BankRefCode).IsUnique();
                 builder.Property(x => x.BankAccountNumber)
                     .HasMaxLength(500);
                 builder.Property(x => x.TransferContent)
                     .HasMaxLength(500);
                 builder.Property(x => x.ActionCode)
-                    .HasMaxLength(50);
+                    .HasMaxLength(250);
                 builder.HasIndex(x => x.ActionCode).IsUnique();
                 
                 builder.Property(x => x.Signature)
-                    .HasMaxLength(50);
+                    .HasMaxLength(250);
                 builder.Property(x => x.Status)
                     .IsRequired()
                     .HasDefaultValue("Success");
